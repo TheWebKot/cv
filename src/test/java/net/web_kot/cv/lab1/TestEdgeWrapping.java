@@ -1,6 +1,5 @@
 package net.web_kot.cv.lab1;
 
-import net.web_kot.cv.ImageSource;
 import net.web_kot.cv.image.EdgeWrapMode;
 import net.web_kot.cv.image.GreyscaleImage;
 import net.web_kot.cv.utils.IOUtils;
@@ -12,7 +11,7 @@ public class TestEdgeWrapping {
     private static final int EDGE = 100;
     
     public static void main(String[] args) {
-        GreyscaleImage image = IOUtils.readGreyscaleFromFile(ImageSource.getImageFile());
+        GreyscaleImage image = IOUtils.readGreyscaleFromFile(new File("test/Fry.jpg"));
         
         for(EdgeWrapMode mode : EdgeWrapMode.values()) {
             GreyscaleImage result = new GreyscaleImage(image.getWidth() + EDGE * 2, image.getHeight() + EDGE * 2);

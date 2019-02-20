@@ -1,23 +1,28 @@
 package net.web_kot.cv.image;
 
-import lombok.Getter;
-import lombok.NonNull;
+import lombok.*;
+import net.web_kot.cv.modifiers.AbstractModifier;
+import net.web_kot.cv.modifiers.ModifierArguments;
 import net.web_kot.cv.utils.MathUtils;
 
 import static net.web_kot.cv.utils.ColorUtils.*;
 
 import java.awt.image.BufferedImage;
 
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class GreyscaleImage {
     
     @Getter
     private final int width, height;
+    @Getter @NonNull
     private final double[] data;
     
     public GreyscaleImage(int width, int height) {
-        this.width = width;
-        this.height = height;
-        this.data = new double[width * height];
+        this(width, height, new double[width * height]);
+    }
+    
+    private GreyscaleImage(GreyscaleImage source) {
+        this(source.getWidth(), source.getHeight(), source.data.clone());
     }
 
     public static GreyscaleImage fromBufferedImage(@NonNull BufferedImage source) {
@@ -76,6 +81,11 @@ public class GreyscaleImage {
     
     private boolean isCoordinatesOutOfBounds(int x, int y) {
         return x < 0 || x >= width || y < 0 || y >= height;
+    }
+    
+    @SneakyThrows
+    public <A extends ModifierArguments, M extends AbstractModifier<A>> A modifier(@NonNull Class<M> clazz) {
+        return clazz.newInstance().createArguments(this, new GreyscaleImage(this));
     }
     
 }

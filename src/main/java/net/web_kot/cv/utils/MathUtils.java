@@ -9,4 +9,8 @@ public class MathUtils {
         return Math.max(minInclusive, Math.min(value, maxExclusive - 1));
     }
     
+    public double sqr(double a) {
+        return a * a;
+    }
+    
 }
