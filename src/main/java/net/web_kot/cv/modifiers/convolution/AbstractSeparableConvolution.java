@@ -26,7 +26,7 @@ public abstract class AbstractSeparableConvolution extends AbstractModifier<Abst
             for(int y = 0; y < source.getHeight(); y++) {
                 double value = 0;
                 
-                for(int dy = -h; dy <= k; dy++)
+                for(int dy = -h; dy <= h; dy++)
                     value += tmp.getPixel(x, y + dy, args.mode) * yVector.getWeight(dy);
                 
                 target.setPixel(x, y, value);
