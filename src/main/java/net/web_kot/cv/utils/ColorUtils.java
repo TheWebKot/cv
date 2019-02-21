@@ -16,5 +16,5 @@ public class ColorUtils {
         int value = (int)Math.round(greyscale * 255);
         return new Color(value, value, value).getRGB();
     }
-    
+
 }

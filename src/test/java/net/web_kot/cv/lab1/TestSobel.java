@@ -1,22 +1,24 @@
 package net.web_kot.cv.lab1;
 
-import net.web_kot.cv.image.GreyscaleImage;
-import net.web_kot.cv.modifiers.common.Normalization;
-import net.web_kot.cv.modifiers.convolution.impl.SobelOperator;
+import net.web_kot.cv.mat.Mat;
+import net.web_kot.cv.processors.common.Normalization;
+import net.web_kot.cv.processors.convolution.impl.gradient.Gradient;
+import net.web_kot.cv.processors.convolution.impl.gradient.GradientMatrices;
 import net.web_kot.cv.utils.IOUtils;
 
 import java.io.File;
 
 public class TestSobel {
-    
+
     public static void main(String[] args) {
-        GreyscaleImage image = IOUtils.readGreyscaleFromFile(new File("test/wall.jpg"));
-        
-        GreyscaleImage result = image.modifier(SobelOperator.class).setTmpFilesPath(new File("test/sobel/")).apply()
-                                     .modifier(Normalization.class).apply();
-        
-        File output = new File("test/sobel/result.png");
-        IOUtils.writeToPngFile(result, output);
+        Mat image = IOUtils.readGreyscaleFromFile(new File("test/wall.jpg"));
+
+        Mat dx = image.withSameSize(), dy = image.withSameSize();
+        image = Gradient.apply(image, dx, dy, GradientMatrices.SOBEL);
+
+        IOUtils.writeToPngFile(Normalization.apply(dx), new File("test/sobel/dx.png"));
+        IOUtils.writeToPngFile(Normalization.apply(dy), new File("test/sobel/dy.png"));
+        IOUtils.writeToPngFile(Normalization.apply(image), new File("test/sobel/result.png"));
     }
-    
+
 }
