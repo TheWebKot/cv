@@ -16,8 +16,8 @@ import java.io.File;
 
 public class SobelOperator extends AbstractModifier<SobelOperator.SobelArguments> {
     
-    private static final OddVector vectorA = OddVector.of(new double[] { 1, 0, -1 });
-    private static final OddVector vectorB = OddVector.of(new double[] { 1, 2, 0 });
+    private static final OddVector vectorA = OddVector.of(new double[] { -1, 0, 1 });
+    private static final OddVector vectorB = OddVector.of(new double[] { 1, 2, 1 });
 
     @Accessors(chain = true)
     public static class SobelArguments extends ModifierArguments {

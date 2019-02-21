@@ -29,7 +29,7 @@ public abstract class AbstractConvolution extends AbstractModifier<AbstractConvo
                 
                 for(int dx = -k; dx <= k; dx++)
                     for(int dy = -h; dy <= h; dy++)
-                        value += source.getPixel(x + dx, y + dy, args.mode) * kernel.getWeight(dx, dy);
+                        value += source.getPixel(x - dx, y - dy, args.mode) * kernel.getWeight(dx, dy);
                 
                 target.setPixel(x, y, value);
             }
