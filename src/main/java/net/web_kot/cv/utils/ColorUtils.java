@@ -7,14 +7,18 @@ import java.awt.*;
 @UtilityClass
 public class ColorUtils {
 
+    public double rgbToGreyscale(int red, int green, int blue) {
+        return (0.229 * red + 0.587 * green + 0.114 * blue) / 255D;
+    }
+
     public double rgbToGreyscale(int rgb) {
         Color color = new Color(rgb);
-        return (0.229 * color.getRed() + 0.587 * color.getGreen() + 0.114 * color.getBlue()) / 255D;
+        return rgbToGreyscale(color.getRed(), color.getGreen(), color.getBlue());
     }
 
     public int greyscaleToRgb(double greyscale) {
         int value = (int)Math.round(greyscale * 255);
-        return new Color(value, value, value).getRGB();
+        return value << 16 | value << 8 | value;
     }
 
 }

@@ -3,11 +3,7 @@ package net.web_kot.cv.mat;
 import lombok.*;
 import net.web_kot.cv.utils.MathUtils;
 
-import static net.web_kot.cv.utils.ColorUtils.*;
-
-import java.awt.image.BufferedImage;
-
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor
 public class Mat {
 
     @Getter
@@ -53,24 +49,6 @@ public class Mat {
                 throw new IllegalArgumentException("Unknown edge wrap mode " + mode);
         }
         return get(x, y);
-    }
-
-    public static Mat fromBufferedImage(BufferedImage image) {
-        Mat mat = new Mat(image.getWidth(), image.getHeight());
-        for(int x = 0; x < mat.getWidth(); x++)
-            for(int y = 0; y < mat.getHeight(); y++)
-                mat.set(x, y, rgbToGreyscale(image.getRGB(x, y)));
-
-        return mat;
-    }
-
-    public BufferedImage toBufferedImage() {
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        for(int x = 0; x < width; x++)
-            for(int y = 0; y < height; y++)
-                image.setRGB(x, y, greyscaleToRgb(get(x, y)));
-
-        return image;
     }
 
     private int getIndex(int x, int y) {

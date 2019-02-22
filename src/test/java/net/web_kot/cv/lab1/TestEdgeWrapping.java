@@ -21,7 +21,7 @@ public class TestEdgeWrapping {
                 for(int y = 0; y < result.getHeight(); y++)
                     result.set(x, y, image.get(x - EDGE, y - EDGE, mode));
 
-            IOUtils.writeToPngFile(result, new File("test/edgeWrapping/" + mode + ".png"));
+            IOUtils.writeToPngFile(result, new File("test/edgeWrapping/" + mode + ".jpg"));
         }
     }
 

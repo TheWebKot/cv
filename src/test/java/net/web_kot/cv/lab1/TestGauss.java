@@ -14,7 +14,7 @@ public class TestGauss {
 
         image = Convolution.apply(image, Gauss.getKernel(4));
 
-        IOUtils.writeToPngFile(image, new File("test/gauss/result.png"));
+        IOUtils.writeToPngFile(image, new File("test/gauss/result.jpg"));
     }
 
 }
