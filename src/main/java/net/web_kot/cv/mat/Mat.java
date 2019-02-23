@@ -7,9 +7,9 @@ import net.web_kot.cv.utils.MathUtils;
 public class Mat {
 
     @Getter
-    private final int width, height;
+    protected final int width, height;
     @Getter
-    private final double[] buffer;
+    protected final double[] buffer;
 
     public Mat(int width, int height) {
         this(width, height, new double[width * height]);
@@ -34,16 +34,16 @@ public class Mat {
                 break;
             case COPY:
             case DEFAULT:
-                x = MathUtils.normalizeNumber(0, x, width);
-                y = MathUtils.normalizeNumber(0, y, height);
+                x = MathUtils.normalizeNumber(0, x, getWidth());
+                y = MathUtils.normalizeNumber(0, y, getHeight());
                 break;
             case MIRROR:
-                if(x < 0 || x >= width) x = x - (x % width) * 2 - 1;
-                if(y < 0 || y >= height) y = y - (y % height) * 2 - 1;
+                if(x < 0 || x >= getWidth()) x = x - (x % getWidth()) * 2 - 1;
+                if(y < 0 || y >= getHeight()) y = y - (y % getHeight()) * 2 - 1;
                 break;
             case WRAP:
-                x = (x + width) % width;
-                y = (y + height) % height;
+                x = (x + getWidth()) % getWidth();
+                y = (y + getHeight()) % getHeight();
                 break;
             default:
                 throw new IllegalArgumentException("Unknown edge wrap mode " + mode);
@@ -51,13 +51,13 @@ public class Mat {
         return get(x, y);
     }
 
-    private int getIndex(int x, int y) {
+    protected int getIndex(int x, int y) {
         if(isCoordinatesOutOfBounds(x, y)) throw new IllegalArgumentException("Coordinates out of bounds");
-        return y * width + x;
+        return y * getWidth() + x;
     }
 
-    private boolean isCoordinatesOutOfBounds(int x, int y) {
-        return x < 0 || x >= width || y < 0 || y >= height;
+    protected boolean isCoordinatesOutOfBounds(int x, int y) {
+        return x < 0 || x >= getWidth() || y < 0 || y >= getHeight();
     }
 
     public Mat copy() {
@@ -65,7 +65,7 @@ public class Mat {
     }
 
     public Mat withSameSize() {
-        return new Mat(this.width, this.height);
+        return new Mat(this.getWidth(), this.getHeight());
     }
 
     public static Mat vector(double[] vector) {

@@ -8,5 +8,6 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.6'
     annotationProcessor 'org.projectlombok:lombok:1.18.6'
 
+    compile 'commons-io:commons-io:2.6'
     //compile 'org.javatuples:javatuples:1.2'
 }

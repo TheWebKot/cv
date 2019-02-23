@@ -13,4 +13,8 @@ public class MathUtils {
         return a * a;
     }
 
+    public double log2(double a) {
+        return Math.log(a) / Math.log(2);
+    }
+
 }

@@ -18,9 +18,9 @@ public class TestSobel {
             Mat dx = image.withSameSize(), dy = image.withSameSize();
             image = Gradient.apply(image, dx, dy, GradientMatrices.SOBEL);
 
-            IOUtils.writeToPngFile(Normalization.apply(dx), new File("test/sobel/dx.jpg"));
-            IOUtils.writeToPngFile(Normalization.apply(dy), new File("test/sobel/dy.jpg"));
-            IOUtils.writeToPngFile(Normalization.apply(image), new File("test/sobel/result.jpg"));
+            IOUtils.writeToJpegFile(Normalization.apply(dx), new File("test/sobel/dx.jpg"));
+            IOUtils.writeToJpegFile(Normalization.apply(dy), new File("test/sobel/dy.jpg"));
+            IOUtils.writeToJpegFile(Normalization.apply(image), new File("test/sobel/result.jpg"));
         });
     }
 

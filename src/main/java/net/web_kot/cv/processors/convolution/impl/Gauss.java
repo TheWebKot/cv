@@ -19,6 +19,10 @@ public class Gauss {
         for(int x = 0; x <= k; x++)
             vector[-x + k] = vector[x + k] = prefix * Math.exp(-MathUtils.sqr(x) / (2 * MathUtils.sqr(sigma)));
 
+        double sum = 0;
+        for(int x = -k; x <= k; x++) sum += vector[x + k];
+        for(int x = -k; x <= k; x++) vector[x + k] /= sum;
+
         Mat mat = Mat.vector(vector);
         return SeparableKernel.of(mat, mat);
     }
