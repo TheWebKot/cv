@@ -2,23 +2,25 @@ package net.web_kot.cv.processors.convolution.impl;
 
 import lombok.experimental.UtilityClass;
 import net.web_kot.cv.mat.Mat;
+import net.web_kot.cv.processors.convolution.SeparableKernel;
 import net.web_kot.cv.utils.MathUtils;
 
 @UtilityClass
 public class Gauss {
 
-    public Mat getKernel(double sigma) {
-        int size = (int)Math.ceil(3 * sigma);
-        double[][] matrix = new double[size * 2 + 1][size * 2 + 1];
+    public SeparableKernel getKernel(double sigma) {
+        return getKernel((int)Math.ceil(3 * sigma), sigma);
+    }
 
-        double prefix = 1D / (2 * Math.PI * MathUtils.sqr(sigma));
-        for(int x = -size; x <= size; x++)
-            for(int y = -size; y <= size; y++) {
-                double value = Math.exp(-(MathUtils.sqr(x) + MathUtils.sqr(y)) / (2 * MathUtils.sqr(sigma)));
-                matrix[x + size][y + size] = prefix * value;
-            }
+    public SeparableKernel getKernel(int k, double sigma) {
+        double[] vector = new double[k * 2 + 1];
 
-        return Mat.matrix(matrix);
+        double prefix = 1D / (Math.sqrt(2 * Math.PI) * sigma);
+        for(int x = 0; x <= k; x++)
+            vector[-x + k] = vector[x + k] = prefix * Math.exp(-MathUtils.sqr(x) / (2 * MathUtils.sqr(sigma)));
+
+        Mat mat = Mat.vector(vector);
+        return SeparableKernel.of(mat, mat);
     }
 
 }
