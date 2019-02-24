@@ -22,12 +22,21 @@ public class Pyramid {
     private static final double MIN_SIZE = 32;
 
     @Getter
+    private final double sigma0;
+    @Getter
     private final int octavesCount, octaveSize;
     @Getter @Accessors(fluent = true)
     private final boolean hasMinusOne;
     private final Map<Integer, List<ScaledMat>> octaves = new HashMap<>();
 
     public ScaledMat get(int octave, int index) {
+        if(octave == -1 && !hasMinusOne)
+            throw new IllegalArgumentException("Pyramid build without -1 octave");
+        if(octave < -1 || octave >= octavesCount)
+            throw new IllegalArgumentException("Octave index out of bounds");
+        if(index < 0 || index > octaveSize)
+            throw new IllegalArgumentException("Octave element index out of bounds");
+
         return octaves.get(octave).get(index);
     }
 
@@ -49,7 +58,7 @@ public class Pyramid {
         if(sigma1 > sigma0)
             throw new IllegalArgumentException("sigma1 must be <= sigma0");
 
-        Pyramid pyramid = new Pyramid(size, octaveSize, minusOne);
+        Pyramid pyramid = new Pyramid(sigma0, size, octaveSize, minusOne);
         double k = pow(2, 1D / octaveSize);
 
         Mat image = gauss(source, sigma1, sigma0);
@@ -83,6 +92,17 @@ public class Pyramid {
         }
 
         return list;
+    }
+
+    public ScaledMat L(double sigma) {
+        int index = max(0, nearestGeometricProgressionElement(sigma0 / 2, pow(2, 1D / octaveSize), sigma));
+
+        int octave = index / octaveSize - 1;
+        int subIndex = index % octaveSize;
+
+        if(octave >= octavesCount) return get(octavesCount - 1, octaveSize);
+        if(octave == -1 && !hasMinusOne) return get(0, 0);
+        return get(octave, subIndex);
     }
 
     private static Mat gauss(Mat mat, double current, double needed) {

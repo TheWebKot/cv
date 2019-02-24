@@ -17,4 +17,10 @@ public class MathUtils {
         return Math.log(a) / Math.log(2);
     }
 
+    // x(n) = a * (q ^ n) | https://math.stackexchange.com/a/447670
+    public int nearestGeometricProgressionElement(double a, double q, double value) {
+        double y = (Math.log(value) - Math.log(a)) / Math.log(q);
+        return (int)Math.round(y);
+    }
+
 }
