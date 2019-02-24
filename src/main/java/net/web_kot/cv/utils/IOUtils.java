@@ -3,7 +3,6 @@ package net.web_kot.cv.utils;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import net.web_kot.cv.mat.Mat;
-import net.web_kot.cv.scale.ScaledMat;
 
 import javax.imageio.ImageIO;
 import java.awt.image.*;
@@ -27,14 +26,17 @@ public class IOUtils {
 
     @SneakyThrows
     public void writeToJpegFile(Mat mat, File file) {
+        writeToJpegFile(toBufferedImage(mat), file);
+    }
+
+    @SneakyThrows
+    public void writeToJpegFile(BufferedImage image, File file) {
         if(!file.getParentFile().exists() && !file.getParentFile().mkdirs())
             throw new RuntimeException("Unable to create directory");
-
-        BufferedImage image = toBufferedImage(mat);
         ImageIO.write(image, "jpeg", file);
     }
 
-    private BufferedImage toBufferedImage(Mat mat) {
+    public BufferedImage toBufferedImage(Mat mat) {
         int width = mat.getWidth(), height = mat.getHeight();
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 

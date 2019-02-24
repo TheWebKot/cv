@@ -27,4 +27,18 @@ public class Gauss {
         return SeparableKernel.of(mat, mat);
     }
 
+    public Mat getFullKernel(double sigma) {
+        int size = (int)Math.ceil(3 * sigma);
+        double[][] kernel = new double[size * 2 + 1][size * 2 + 1];
+
+        double prefix = 1D / (2 * Math.PI * MathUtils.sqr(sigma));
+        for(int x = -size; x <= size; x++)
+            for(int y = -size; y <= size; y++) {
+                double value = Math.exp(-(MathUtils.sqr(x) + MathUtils.sqr(y)) / (2 * MathUtils.sqr(sigma)));
+                kernel[x + size][y + size] = prefix * value;
+            }
+
+        return Mat.matrix(kernel);
+    }
+
 }

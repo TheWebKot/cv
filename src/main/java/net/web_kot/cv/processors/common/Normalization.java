@@ -23,6 +23,7 @@ public class Normalization {
     private void apply(double[] source, double[] target, double newMin, double newMax) {
         double min = source[0], max = source[0];
         for(double value : source) {
+            if(Double.isNaN(value)) continue;
             min = Math.min(min, value);
             max = Math.max(max, value);
         }
