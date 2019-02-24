@@ -16,9 +16,9 @@ public class TestPyramid {
         FileUtils.deleteDirectory(new File("test/pyramid/build/"));
 
         Mat image = IOUtils.readGreyscaleFromFile(new File("test/cat.jpg"));
-        Pyramid pyramid = Pyramid.build(image, 3, 0D, 2D);
+        Pyramid pyramid = Pyramid.build(image, 3, 0D, 2D, true);
 
-        for(int i = 0; i < pyramid.getOctavesCount(); i++)
+        for(int i = -1; i < pyramid.getOctavesCount(); i++)
             for(int j = 0; j <= pyramid.getOctaveSize(); j++) {
                 ScaledMat scaled = pyramid.get(i, j);
 

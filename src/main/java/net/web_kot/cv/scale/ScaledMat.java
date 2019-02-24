@@ -26,26 +26,26 @@ public class ScaledMat extends Mat {
 
     @Override
     public int getWidth() {
-        return width * (1 << octave);
+        return modify(width);
     }
 
     @Override
     public int getHeight() {
-        return height * (1 << octave);
+        return modify(height);
     }
 
     @Override
     protected int getIndex(int x, int y) {
         if(isCoordinatesOutOfBounds(x, y)) throw new IllegalArgumentException("Coordinates out of bounds");
 
-        x /= 1 << octave;
-        y /= 1 << octave;
+        x = modifyReverse(x);
+        y = modifyReverse(y);
 
         return y * width + x;
     }
 
     public int backConvertCoordinate(int c) {
-        return c * (1 << octave);
+        return modify(c);
     }
 
     @Override
@@ -64,7 +64,21 @@ public class ScaledMat extends Mat {
     }
 
     public String getDescription() {
-        return String.format("{%d.%d, sigma=%.3f, effSigma=%.3f}", octave, index, sigma, effectiveSigma);
+        String o = octave == -1 ? "$" : octave + "";
+        return String.format("{%s.%d, sigma=%.3f, effSigma=%.3f}", o, index, sigma, effectiveSigma);
+    }
+
+    private int modify(int value) {
+        return modify(value, octave);
+    }
+
+    private int modifyReverse(int value) {
+        return modify(value, -octave);
+    }
+
+    private int modify(int value, int offset) {
+        if(offset < 0) return value >> (-offset);
+        return value << offset;
     }
 
 }

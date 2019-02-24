@@ -23,9 +23,9 @@ public class TestPyramidComparison {
         FileUtils.deleteDirectory(new File("test/pyramid/compare/"));
 
         Mat image = IOUtils.readGreyscaleFromFile(new File("test/head.jpg"));
-        Pyramid pyramid = Pyramid.build(image, OCTAVE_SIZE, 0, SIGMA);
+        Pyramid pyramid = Pyramid.build(image, OCTAVE_SIZE, 0, SIGMA, true);
 
-        double sigma = SIGMA, k = Math.pow(2, 1D / OCTAVE_SIZE);
+        double sigma = SIGMA / 2, k = Math.pow(2, 1D / OCTAVE_SIZE);
         do {
             Mat mat = Convolution.apply(image, Gauss.getKernel(sigma));
 
@@ -35,9 +35,9 @@ public class TestPyramidComparison {
             sigma *= k;
         } while(!(sigma > MAX_COMPARISON_SIGMA));
 
-        loop: for(int i = 0; i < pyramid.getOctavesCount(); i++)
+        loop: for(int i = -1; i < pyramid.getOctavesCount(); i++)
             for(int j = 0; j <= pyramid.getOctaveSize(); j++) {
-                if(i != 0 && j == 0) continue; // Skip first image in all octaves exclude first
+                if(i != -1 && j == 0) continue; // Skip first image in all octaves exclude -1
 
                 ScaledMat scaled = pyramid.get(i, j);
                 if(scaled.getEffectiveSigma() > MAX_COMPARISON_SIGMA) break loop;
