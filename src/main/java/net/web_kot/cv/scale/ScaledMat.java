@@ -20,6 +20,10 @@ public class ScaledMat extends Mat {
         this.effectiveSigma = effectiveSigma;
     }
 
+    public Mat withoutScaling() {
+        return new Mat(width, height, buffer);
+    }
+
     @Override
     public int getWidth() {
         return width * (1 << octave);
@@ -40,16 +44,8 @@ public class ScaledMat extends Mat {
         return y * width + x;
     }
 
-    public int getWidthReal() {
-        return width;
-    }
-
-    public int getHeightReal() {
-        return height;
-    }
-
-    public double getReal(int x, int y) {
-        return buffer[y * width + x];
+    public int backConvertCoordinate(int c) {
+        return c * (1 << octave);
     }
 
     @Override
@@ -67,8 +63,7 @@ public class ScaledMat extends Mat {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public String toString() {
+    public String getDescription() {
         return String.format("{%d.%d, sigma=%.3f, effSigma=%.3f}", octave, index, sigma, effectiveSigma);
     }
 

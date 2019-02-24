@@ -25,18 +25,12 @@ public class IOUtils {
         return mat;
     }
 
-    public void writeToJpegFile(Mat mat, File file) {
-        writeToJpegFile(mat, file, false);
-    }
-
     @SneakyThrows
-    public void writeToJpegFile(Mat mat, File file, boolean scaledAsIs) {
+    public void writeToJpegFile(Mat mat, File file) {
         if(!file.getParentFile().exists() && !file.getParentFile().mkdirs())
             throw new RuntimeException("Unable to create directory");
 
-        BufferedImage image;
-        image = scaledAsIs && mat instanceof ScaledMat ? toBufferedImage((ScaledMat)mat) : toBufferedImage(mat);
-
+        BufferedImage image = toBufferedImage(mat);
         ImageIO.write(image, "jpeg", file);
     }
 
@@ -49,19 +43,6 @@ public class IOUtils {
         for(int x = 0; x < width; x++)
             for(int y = 0; y < height; y++)
                 pixels[y * width + x] = ColorUtils.greyscaleToRgb(mat.get(x, y));
-
-        return image;
-    }
-
-    private BufferedImage toBufferedImage(ScaledMat mat) {
-        int width = mat.getWidthReal(), height = mat.getHeightReal();
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-
-        int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
-
-        for(int x = 0; x < width; x++)
-            for(int y = 0; y < height; y++)
-                pixels[y * width + x] = ColorUtils.greyscaleToRgb(mat.getReal(x, y));
 
         return image;
     }

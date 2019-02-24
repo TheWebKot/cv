@@ -2,6 +2,7 @@ package net.web_kot.cv.lab2;
 
 import net.web_kot.cv.mat.Mat;
 import net.web_kot.cv.scale.Pyramid;
+import net.web_kot.cv.scale.ScaledMat;
 import net.web_kot.cv.utils.IOUtils;
 import org.apache.commons.io.FileUtils;
 
@@ -19,8 +20,10 @@ public class TestPyramid {
 
         for(int i = 0; i < pyramid.getOctavesCount(); i++)
             for(int j = 0; j <= pyramid.getOctaveSize(); j++) {
-                Mat scaled = pyramid.get(i, j);
-                IOUtils.writeToJpegFile(scaled, new File("test/pyramid/build/" + scaled + ".jpeg"), true);
+                ScaledMat scaled = pyramid.get(i, j);
+
+                String fileName = "test/pyramid/build/" + scaled.getDescription() + ".jpeg";
+                IOUtils.writeToJpegFile(scaled.withoutScaling(), new File(fileName));
             }
     }
 

@@ -8,7 +8,9 @@ import net.web_kot.cv.processors.convolution.Convolution;
 import net.web_kot.cv.processors.convolution.impl.Gauss;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.Math.*;
 import static net.web_kot.cv.utils.MathUtils.*;
@@ -20,10 +22,10 @@ public class Pyramid {
 
     @Getter
     private final int octavesCount, octaveSize;
-    private final List<List<ScaledMat>> list = new ArrayList<>();
+    private final Map<Integer, List<ScaledMat>> images = new HashMap<>();
 
     public ScaledMat get(int octave, int index) {
-        return list.get(octave).get(index);
+        return images.get(octave).get(index);
     }
 
     public static Pyramid build(Mat source, int octaveSize, double sourceSigma, double sigma0) {
@@ -35,6 +37,9 @@ public class Pyramid {
     }
 
     public static Pyramid build(Mat source, int octavesCount, int octaveSize, double sourceSigma, double sigma0) {
+        if(sourceSigma > sigma0)
+            throw new IllegalArgumentException("Source sigma must be less than or equal to sigma0");
+
         Pyramid pyramid = new Pyramid(octavesCount, octaveSize);
         double k = pow(2, 1D / octaveSize);
 
@@ -53,7 +58,7 @@ public class Pyramid {
                 sigma = nextSigma;
             }
 
-            pyramid.list.add(list);
+            pyramid.images.put(octave, list);
             if(octave != octavesCount - 1) image = downsample(image);
         }
 
