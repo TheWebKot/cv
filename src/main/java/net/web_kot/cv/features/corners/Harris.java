@@ -39,7 +39,7 @@ public class Harris {
                 lambdas.set(x, y, calcLambdaMin(A, B, C));
             }
 
-        return CornerDetectionCommon.normalizeAndFilter(lambdas, threshold);
+        return CornersDetectionCommon.normalizeAndFilter(lambdas, threshold);
     }
 
     private double calcLambdaMin(double A, double B, double C) {

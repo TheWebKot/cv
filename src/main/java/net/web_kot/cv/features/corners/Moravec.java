@@ -37,7 +37,7 @@ public class Moravec {
                     s.set(x, y, Math.min(s.get(x, y), sum));
                 }
 
-        return CornerDetectionCommon.normalizeAndFilter(s, threshold);
+        return CornersDetectionCommon.normalizeAndFilter(s, threshold);
     }
 
 }

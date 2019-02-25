@@ -49,4 +49,9 @@ public class IOUtils {
         return image;
     }
 
+    public String getFileName(String path) {
+        if(path.contains("/")) path = path.substring(path.lastIndexOf('/'));
+        return path.substring(0, path.lastIndexOf('.'));
+    }
+
 }

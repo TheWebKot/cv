@@ -5,8 +5,11 @@ import net.web_kot.cv.mat.EdgeWrapMode;
 import net.web_kot.cv.mat.Mat;
 import net.web_kot.cv.processors.common.Normalization;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @UtilityClass
-class CornerDetectionCommon {
+public class CornersDetectionCommon {
 
     public Mat normalizeAndFilter(Mat mat, double threshold) {
         mat = Normalization.apply(mat);
@@ -28,6 +31,14 @@ class CornerDetectionCommon {
                 if(mat.get(x + dx, y + dy, EdgeWrapMode.BLACK) - mat.get(x, y) > 1e-6) return true;
             }
         return false;
+    }
+
+    public List<PointOfInterest> matToPoints(Mat mat) {
+        List<PointOfInterest> list = new ArrayList<>();
+        for(int x = 0; x < mat.getWidth(); x++)
+            for(int y = 0; y < mat.getHeight(); y++)
+                if(mat.get(x, y) > 1e-6) list.add(new PointOfInterest(x, y, mat.get(x, y)));
+        return list;
     }
 
 }
