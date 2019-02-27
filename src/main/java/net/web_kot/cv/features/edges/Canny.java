@@ -46,7 +46,7 @@ public class Canny {
         // Step 3: non-maximum suppression
         for(int x = 0; x < image.getWidth(); x++)
             for(int y = 0; y < image.getHeight(); y++) {
-                double theta = Math.abs(Math.atan2(dy.get(x, y), dx.get(x, y)));
+                double theta = (Math.atan2(dy.get(x, y), dx.get(x, y)) + Math.PI) % Math.PI;
                 suppressed.set(x, y, checkPixel(gradient, theta, x, y) ? gradient.get(x, y) : 0);
             }
 
