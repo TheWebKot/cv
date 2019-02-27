@@ -1,6 +1,5 @@
 package net.web_kot.cv.features.edges;
 
-import lombok.experimental.UtilityClass;
 import net.web_kot.cv.mat.EdgeWrapMode;
 import net.web_kot.cv.mat.Mat;
 import net.web_kot.cv.processors.common.Normalization;
@@ -11,7 +10,6 @@ import net.web_kot.cv.processors.convolution.impl.gradient.GradientMatrices;
 
 import java.util.function.Function;
 
-@UtilityClass
 public class Canny {
 
     public static final double DEFAULT_MIN = 0.05;
@@ -20,21 +18,21 @@ public class Canny {
 
     private enum Type { SUPPRESSED, WEAK, STRONG }
 
-    private final double PI_DIVIDE_4 = Math.PI / 4;
+    private static final double PI_DIVIDE_4 = Math.PI / 4;
 
-    private final int[] DX = {  1,  1,  0, -1, -1, -1,  0,  1 }; /* 3 2 1 / 4 X 0 / 5 6 7 */
-    private final int[] DY = {  0, -1, -1, -1,  0,  1,  1,  1 };
+    private static final int[] DX = {  1,  1,  0, -1, -1, -1,  0,  1 }; /* 3 2 1 / 4 X 0 / 5 6 7 */
+    private static final int[] DY = {  0, -1, -1, -1,  0,  1,  1,  1 };
 
-    public Mat apply(Mat image) {
+    public static Mat apply(Mat image) {
         return apply(image, DEFAULT_MIN, DEFAULT_MAX, DEFAULT_TRACKING_RADIUS);
     }
 
-    public Mat apply(Mat image, double minThreshold, double maxThreshold, int trackingRadius) {
+    public static Mat apply(Mat image, double minThreshold, double maxThreshold, int trackingRadius) {
         return apply(image, image.withSameSize(), image.withSameSize(), image.withSameSize(),
                      minThreshold, maxThreshold, trackingRadius);
     }
 
-    public Mat apply(Mat image, Mat gradient, Mat suppressed, Mat levels, double minT, double maxT, int radius) {
+    public static Mat apply(Mat image, Mat gradient, Mat suppressed, Mat levels, double minT, double maxT, int radius) {
         // Step 1: gaussian filter
         image = Convolution.apply(image, Gauss.getKernel(1.4));
 
@@ -68,26 +66,26 @@ public class Canny {
         return writeMatrix(matrix, t -> t == Type.STRONG ? 1D : 0);
     }
 
-    private boolean checkPixel(Mat image, double theta, int x, int y) {
+    private static boolean checkPixel(Mat image, double theta, int x, int y) {
         if(theta >= Math.PI) theta = Math.PI - 1e-6;
         return checkPixelWithOffset(image, x, y, theta % PI_DIVIDE_4, (int)(theta / PI_DIVIDE_4));
     }
 
-    private boolean checkPixelWithOffset(Mat image, int x, int y, double angle, int offset) {
+    private static boolean checkPixelWithOffset(Mat image, int x, int y, double angle, int offset) {
         double a = interpolate(image, x, y, angle, offset, offset + 1);
         double b = interpolate(image, x, y, angle, offset + 4, (offset + 4 + 1) % 8);
 
         return image.get(x, y) > a && image.get(x, y) > b;
     }
 
-    private double interpolate(Mat image, int x, int y, double angle, int u, int v) {
+    private static double interpolate(Mat image, int x, int y, double angle, int u, int v) {
         double a = image.get(x + DX[u], y + DY[u], EdgeWrapMode.DEFAULT);
         double b = image.get(x + DX[v], y + DY[v], EdgeWrapMode.DEFAULT);
 
         return a * (angle / PI_DIVIDE_4) + b * (1 - angle / PI_DIVIDE_4);
     }
 
-    private void dfs(Type[][] matrix, boolean[][] used, int x, int y, int radius) {
+    private static void dfs(Type[][] matrix, boolean[][] used, int x, int y, int radius) {
         if(used[x][y]) return;
         used[x][y] = true;
 
@@ -102,13 +100,13 @@ public class Canny {
             }
     }
 
-    private Mat writeMatrix(Type[][] matrix, Function<Type, Double> mapper) {
+    private static Mat writeMatrix(Type[][] matrix, Function<Type, Double> mapper) {
         Mat mat = new Mat(matrix.length, matrix[0].length);
         writeMatrixTo(matrix, mat, mapper);
         return mat;
     }
 
-    private void writeMatrixTo(Type[][] matrix, Mat target, Function<Type, Double> mapper) {
+    private static void writeMatrixTo(Type[][] matrix, Mat target, Function<Type, Double> mapper) {
         for(int x = 0; x < matrix.length; x++)
             for(int y = 0; y < matrix[0].length; y++)
                 target.set(x, y, mapper.apply(matrix[x][y]));

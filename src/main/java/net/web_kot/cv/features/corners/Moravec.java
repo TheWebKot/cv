@@ -1,6 +1,5 @@
 package net.web_kot.cv.features.corners;
 
-import lombok.experimental.UtilityClass;
 import net.web_kot.cv.mat.EdgeWrapMode;
 import net.web_kot.cv.mat.Mat;
 import net.web_kot.cv.processors.convolution.Convolution;
@@ -9,17 +8,16 @@ import net.web_kot.cv.utils.MathUtils;
 
 import java.util.Arrays;
 
-@UtilityClass
 public class Moravec {
 
     private static final int[] DX = { -1,  0,  1, -1,  1, -1,  0,  1 };
     private static final int[] DY = { -1, -1, -1,  0,  0,  1,  1,  1 };
 
-    public Mat find(Mat image, int k, double threshold) {
+    public static Mat find(Mat image, int k, double threshold) {
         return find(image, k, threshold, EdgeWrapMode.DEFAULT);
     }
 
-    public Mat find(Mat image, int k, double threshold, EdgeWrapMode mode) {
+    public static Mat find(Mat image, int k, double threshold, EdgeWrapMode mode) {
         Mat s = image.withSameSize();
         Arrays.fill(s.getBuffer(), Double.POSITIVE_INFINITY);
 

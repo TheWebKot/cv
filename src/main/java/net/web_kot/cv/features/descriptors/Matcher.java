@@ -1,17 +1,15 @@
 package net.web_kot.cv.features.descriptors;
 
-import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@UtilityClass
 public class Matcher {
 
-    private final double NEXT_NEAREST_DISTANCE_RATIO = 0.8;
+    private static final double NEXT_NEAREST_DISTANCE_RATIO = 0.8;
 
-    public List<Pair<Descriptor, Descriptor>> match(List<Descriptor> first, List<Descriptor> second) {
+    public static List<Pair<Descriptor, Descriptor>> match(List<Descriptor> first, List<Descriptor> second) {
         List<Pair<Descriptor, Descriptor>> matching = new ArrayList<>();
         for(Descriptor descriptor : first) {
             Descriptor best = findBestFor(descriptor, second);
@@ -20,7 +18,7 @@ public class Matcher {
         return matching;
     }
 
-    private Descriptor findBestFor(Descriptor descriptor, List<Descriptor> candidates) {
+    private static Descriptor findBestFor(Descriptor descriptor, List<Descriptor> candidates) {
         ArrayList<Double> distances = new ArrayList<>();
         for(Descriptor d : candidates) distances.add(descriptor.getVector().distanceTo(d.getVector()));
 
@@ -32,7 +30,7 @@ public class Matcher {
         return null;
     }
 
-    private int getClosest(ArrayList<Double> distances, int exclude) {
+    private static int getClosest(ArrayList<Double> distances, int exclude) {
         int selectedIndex = -1;
         for(int i = 0; i < distances.size(); i++)
             if(i != exclude && (selectedIndex == -1 || distances.get(i) < distances.get(selectedIndex)))

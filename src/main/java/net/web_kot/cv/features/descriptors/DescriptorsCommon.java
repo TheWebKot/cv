@@ -1,6 +1,5 @@
 package net.web_kot.cv.features.descriptors;
 
-import lombok.experimental.UtilityClass;
 import net.web_kot.cv.features.corners.PointOfInterest;
 import net.web_kot.cv.mat.Vector;
 import net.web_kot.cv.utils.Range;
@@ -10,16 +9,15 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-@UtilityClass
 public class DescriptorsCommon {
 
-    public List<Descriptor> map(Iterable<PointOfInterest> points, Function<PointOfInterest, Vector> mapper) {
+    public static List<Descriptor> map(Iterable<PointOfInterest> points, Function<PointOfInterest, Vector> mapper) {
         ArrayList<Descriptor> result = new ArrayList<>();
         for(PointOfInterest point : points) result.add(Descriptor.of(point, mapper.apply(point)));
         return result;
     }
 
-    public Function<PointOfInterest, Vector> gridMapper(int gridSize, int blockSize,
+    public static Function<PointOfInterest, Vector> gridMapper(int gridSize, int blockSize,
                                                         BiFunction<Range, Range, Vector> blockMapper) {
         return (point) -> {
             int cornerX = point.getX() - gridSize * blockSize / 2;

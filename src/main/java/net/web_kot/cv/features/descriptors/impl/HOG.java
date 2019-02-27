@@ -1,6 +1,5 @@
 package net.web_kot.cv.features.descriptors.impl;
 
-import lombok.experimental.UtilityClass;
 import net.web_kot.cv.features.corners.PointOfInterest;
 import net.web_kot.cv.features.descriptors.Descriptor;
 import net.web_kot.cv.mat.EdgeWrapMode;
@@ -14,19 +13,18 @@ import java.util.List;
 import static net.web_kot.cv.features.descriptors.DescriptorsCommon.*;
 import static net.web_kot.cv.utils.MathUtils.sqr;
 
-@UtilityClass
 public class HOG {
 
-    private final int DEFAULT_BINS_COUNT = 8;
+    private static final int DEFAULT_BINS_COUNT = 8;
 
-    private final int DEFAULT_GRID_SIZE = 2;
-    private final int DEFAULT_BLOCK_SIZE = 4;
+    private static final int DEFAULT_GRID_SIZE = 2;
+    private static final int DEFAULT_BLOCK_SIZE = 4;
 
-    public List<Descriptor> calculate(Mat image, Iterable<PointOfInterest> points) {
+    public static List<Descriptor> calculate(Mat image, Iterable<PointOfInterest> points) {
         return calculate(image, points, DEFAULT_GRID_SIZE, DEFAULT_BLOCK_SIZE, DEFAULT_BINS_COUNT);
     }
 
-    public List<Descriptor> calculate(Mat image, Iterable<PointOfInterest> points,
+    public static List<Descriptor> calculate(Mat image, Iterable<PointOfInterest> points,
                                       int gridSize, int blockSize, int binsCount) {
         Mat dx = image.withSameSize(), dy = image.withSameSize(), gradient = image.withSameSize();
         Gradient.apply(image, gradient, dx, dy, GradientMatrices.SOBEL);
@@ -59,7 +57,7 @@ public class HOG {
         });
     }
 
-    private double distanceBasedCoefficient(double distance, double maxDistance) {
+    private static double distanceBasedCoefficient(double distance, double maxDistance) {
         if(distance > maxDistance * 0.78) return 0;
         return 1;
     }

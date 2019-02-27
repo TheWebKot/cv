@@ -1,6 +1,5 @@
 package net.web_kot.cv.features.corners;
 
-import lombok.experimental.UtilityClass;
 import net.web_kot.cv.mat.Mat;
 import net.web_kot.cv.utils.MathUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -10,17 +9,16 @@ import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-@UtilityClass
 public class NonMaximumSuppression {
 
     private static final double C_ROBUST = 0.9;
 
-    public List<PointOfInterest> filter(Mat mat, int minAmount) {
+    public static List<PointOfInterest> filter(Mat mat, int minAmount) {
         double maxRadius = Math.sqrt(MathUtils.sqr(mat.getWidth()) + MathUtils.sqr(mat.getHeight()));
         return filter(CornersDetectionCommon.matToPoints(mat), minAmount, maxRadius);
     }
 
-    public List<PointOfInterest> filter(List<PointOfInterest> pointsList, int minAmount, double maxRadius) {
+    public static List<PointOfInterest> filter(List<PointOfInterest> pointsList, int minAmount, double maxRadius) {
         PointOfInterest[] points = pointsList.toArray(new PointOfInterest[0]);
         Arrays.sort(points, Comparator.comparingDouble(p -> -p.getValue()));
 
@@ -42,7 +40,7 @@ public class NonMaximumSuppression {
                         .collect(Collectors.toList());
     }
 
-    private int countWithRadius(PointOfInterest[] points, double radiusSquared, boolean[] used) {
+    private static int countWithRadius(PointOfInterest[] points, double radiusSquared, boolean[] used) {
         Arrays.fill(used, false);
 
         for(int i = 0; i < points.length; i++) {
@@ -61,11 +59,11 @@ public class NonMaximumSuppression {
         return count;
     }
 
-    public List<PointOfInterest> filter2(Mat mat, int amount) {
+    public static List<PointOfInterest> filter2(Mat mat, int amount) {
         return filter2(CornersDetectionCommon.matToPoints(mat), amount);
     }
 
-    public List<PointOfInterest> filter2(List<PointOfInterest> points, int amount) {
+    public static List<PointOfInterest> filter2(List<PointOfInterest> points, int amount) {
         ArrayList<Pair<PointOfInterest, Double>> radiuses = new ArrayList<>(points.size());
 
         for(PointOfInterest point : points) {

@@ -1,6 +1,5 @@
 package net.web_kot.cv.features.corners;
 
-import lombok.experimental.UtilityClass;
 import net.web_kot.cv.mat.EdgeWrapMode;
 import net.web_kot.cv.mat.Mat;
 import net.web_kot.cv.processors.common.Normalization;
@@ -8,10 +7,9 @@ import net.web_kot.cv.processors.common.Normalization;
 import java.util.ArrayList;
 import java.util.List;
 
-@UtilityClass
 public class CornersDetectionCommon {
 
-    public Mat normalizeAndFilter(Mat mat, double threshold) {
+    public static Mat normalizeAndFilter(Mat mat, double threshold) {
         mat = Normalization.apply(mat);
         Mat result = mat.withSameSize();
 
@@ -24,7 +22,7 @@ public class CornersDetectionCommon {
         return result;
     }
 
-    private boolean hasLargerNeighbour(Mat mat, int x, int y) {
+    private static boolean hasLargerNeighbour(Mat mat, int x, int y) {
         for(int dx = -1; dx <= 1; dx++)
             for(int dy = -1; dy <= 1; dy++) {
                 if(dx == 0 && dy == 0) continue;
@@ -33,7 +31,7 @@ public class CornersDetectionCommon {
         return false;
     }
 
-    public List<PointOfInterest> matToPoints(Mat mat) {
+    public static List<PointOfInterest> matToPoints(Mat mat) {
         List<PointOfInterest> list = new ArrayList<>();
         for(int x = 0; x < mat.getWidth(); x++)
             for(int y = 0; y < mat.getHeight(); y++)

@@ -1,6 +1,5 @@
 package net.web_kot.cv.features.corners;
 
-import lombok.experimental.UtilityClass;
 import net.web_kot.cv.mat.EdgeWrapMode;
 import net.web_kot.cv.mat.Mat;
 import net.web_kot.cv.processors.convolution.impl.Gauss;
@@ -8,14 +7,13 @@ import net.web_kot.cv.processors.convolution.impl.gradient.Gradient;
 import net.web_kot.cv.processors.convolution.impl.gradient.GradientMatrices;
 import net.web_kot.cv.utils.MathUtils;
 
-@UtilityClass
 public class Harris {
 
-    public Mat find(Mat image, int k, double threshold) {
+    public static Mat find(Mat image, int k, double threshold) {
         return find(image, k, threshold, EdgeWrapMode.DEFAULT);
     }
 
-    public Mat find(Mat image, int k, double threshold, EdgeWrapMode mode) {
+    public static Mat find(Mat image, int k, double threshold, EdgeWrapMode mode) {
         Mat gauss = Gauss.getFullKernel(k / 3D);
         int gaussK = gauss.getWidth() / 2;
 
@@ -42,7 +40,7 @@ public class Harris {
         return CornersDetectionCommon.normalizeAndFilter(lambdas, threshold);
     }
 
-    private double calcLambdaMin(double A, double B, double C) {
+    private static double calcLambdaMin(double A, double B, double C) {
         double a = 1, b = -(A + C), c = A * C - B * B;
         double D = b * b - 4 * a * c;
 
