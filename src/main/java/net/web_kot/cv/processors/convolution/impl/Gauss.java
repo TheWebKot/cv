@@ -2,6 +2,7 @@ package net.web_kot.cv.processors.convolution.impl;
 
 import lombok.experimental.UtilityClass;
 import net.web_kot.cv.mat.Mat;
+import net.web_kot.cv.mat.Vector;
 import net.web_kot.cv.processors.convolution.SeparableKernel;
 import net.web_kot.cv.utils.MathUtils;
 
@@ -23,7 +24,7 @@ public class Gauss {
         for(int x = -k; x <= k; x++) sum += vector[x + k];
         for(int x = -k; x <= k; x++) vector[x + k] /= sum;
 
-        Mat mat = Mat.vector(vector);
+        Mat mat = Vector.from(vector);
         return SeparableKernel.of(mat, mat);
     }
 
@@ -38,7 +39,7 @@ public class Gauss {
                 kernel[x + size][y + size] = prefix * value;
             }
 
-        return Mat.matrix(kernel);
+        return Mat.from(kernel);
     }
 
 }

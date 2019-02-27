@@ -32,4 +32,16 @@ public class DrawUtils {
         g.fillOval(x - radius, y - radius, radius * 2, radius * 2);
     }
 
+    public void drawImage(BufferedImage target, BufferedImage image, int x, int y) {
+        Graphics2D g = (Graphics2D)target.getGraphics();
+        g.drawImage(image, x, y, null);
+    }
+
+    public void drawLine(BufferedImage image, int fromX, int fromY, int toX, int toY) {
+        Graphics2D g = (Graphics2D)image.getGraphics();
+        g.setColor(new Color(1, 0, 0, 0.5f));
+        g.setStroke(new BasicStroke(2));
+        g.drawLine(fromX, fromY, toX, toY);
+    }
+
 }

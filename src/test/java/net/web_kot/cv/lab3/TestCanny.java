@@ -9,7 +9,7 @@ import java.io.File;
 
 import static net.web_kot.cv.features.edges.Canny.*;
 
-public class CannyTest {
+public class TestCanny {
 
     private static final File src = new File("test/building.jpg");
 

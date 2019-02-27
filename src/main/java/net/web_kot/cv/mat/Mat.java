@@ -68,11 +68,7 @@ public class Mat {
         return new Mat(this.getWidth(), this.getHeight());
     }
 
-    public static Mat vector(double[] vector) {
-        return new Mat(vector.length, 1, vector.clone());
-    }
-
-    public static Mat matrix(double[][] matrix) {
+    public static Mat from(double[][] matrix) {
         Mat result = new Mat(matrix[0].length, matrix.length);
         for(int i = 0; i < matrix.length; i++)
             System.arraycopy(matrix[i], 0, result.buffer, i * result.width, result.width);
