@@ -22,6 +22,8 @@ public class NonMaximumSuppression {
 
     public List<PointOfInterest> filter(List<PointOfInterest> pointsList, int minAmount, double maxRadius) {
         PointOfInterest[] points = pointsList.toArray(new PointOfInterest[0]);
+        Arrays.sort(points, Comparator.comparingDouble(p -> -p.getValue()));
+
         boolean[] used = new boolean[points.length];
 
         double left = 0, right = maxRadius;
