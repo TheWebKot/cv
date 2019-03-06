@@ -27,34 +27,72 @@ public class HOG {
     public static List<Descriptor> calculate(Mat image, Iterable<PointOfInterest> points,
                                              int gridSize, int blockSize, int binsCount) {
         Mat gauss = Gauss.getFullKernel(DEFAULT_GRID_SIZE * DEFAULT_BLOCK_SIZE / 3D);
-        int gaussK = gauss.getWidth() / 2;
 
         Mat dx = image.withSameSize(), dy = image.withSameSize(), gradient = image.withSameSize();
         Gradient.apply(image, gradient, dx, dy, GradientMatrices.SOBEL);
 
+        return map(points, point ->
+                toVector(
+                        calculateHistograms(gradient, dx, dy, gauss, gridSize, blockSize, binsCount, point, 0),
+                        gridSize, binsCount
+                )
+        );
+    }
+
+    protected static double[][][] calculateHistograms(Mat gradient, Mat dx, Mat dy, Mat gauss,
+                                                      int gridSize, int blockSize, int binsCount,
+                                                      PointOfInterest center, double angle) {
         EdgeWrapMode mode = EdgeWrapMode.DEFAULT;
-        return map(points, center -> gridMapper(gridSize, blockSize, (xRange, yRange) -> {
-            double[] bins = new double[binsCount];
-            double step = 2 * Math.PI / binsCount;
+        int gaussK = gauss.getWidth() / 2;
 
-            for(int x = xRange.fromInclusive(); x < xRange.toExclusive(); x++)
-                for(int y = yRange.fromInclusive(); y <= yRange.toExclusive(); y++) {
-                    int deltaX = x - center.getX(), deltaY = y - center.getY();
-                    double multiplier = gauss.get(deltaX + gaussK, deltaY + gaussK);
+        double[][][] bins = new double[gridSize][gridSize][binsCount];
+        double step = 2 * Math.PI / binsCount;
 
-                    double theta = Math.atan2(dy.get(x, y, mode), dx.get(x, y, mode)) + Math.PI;
-                    double value = gradient.get(x, y, mode) * multiplier;
+        int from = gridSize * blockSize / 2, to = gridSize * blockSize - from;
+        for(int u = -from; u < to; u++)
+            for(int v = -from; v < to; v++) {
+                int x = center.getX() + u, y = center.getY() + v;
 
-                    int leftBin = Math.min((int)Math.floor(theta / step), binsCount - 1);
-                    int rightBin = (leftBin + 1) % binsCount;
+                double theta = Math.atan2(dy.get(x, y, mode), dx.get(x, y, mode)) + Math.PI;
+                double value = gradient.get(x, y, mode);
 
-                    double ratio = (theta % step) / step;
-                    bins[leftBin] += value * (1 - ratio);
-                    bins[rightBin] += value * ratio;
-                }
+                // Rotation
+                int rotatedU = (int)Math.round(u * Math.cos(angle) + v * Math.sin(angle));
+                int rotatedV = (int)Math.round(v * Math.cos(angle) - u * Math.sin(angle));
 
-            return Vector.from(bins);
-        }).apply(center));
+                double rotatedTheta = theta - angle;
+                if(rotatedTheta < 0) rotatedTheta += Math.PI * 2;
+
+                // Grid cell location
+                int column = (rotatedU + from) / blockSize;
+                int row = (rotatedV + from) / blockSize;
+
+                if(column < 0 || column >= gridSize || row < 0 || row >= gridSize) continue;
+
+                // Distance-based multiplier
+                value = value * gauss.get(rotatedU + gaussK, rotatedV + gaussK);
+
+                // Bins distribution
+                int leftBin = Math.min((int)Math.floor(rotatedTheta / step), binsCount - 1);
+                int rightBin = (leftBin + 1) % binsCount;
+
+                double ratio = (rotatedTheta % step) / step;
+                bins[row][column][leftBin] += value * (1 - ratio);
+                bins[row][column][rightBin] += value * ratio;
+            }
+
+        return bins;
+    }
+
+    protected static Vector toVector(double[][][] bins, int gridSize, int binsCount) {
+        Vector result = new Vector(gridSize * gridSize * binsCount);
+
+        for(int i = 0; i < gridSize; i++)
+            for(int j = 0; j < gridSize; j++)
+                for(int k = 0; k < binsCount; k++)
+                    result.set(i * gridSize * binsCount + j * binsCount + k, bins[i][j][k]);
+
+        return result.normalize();
     }
 
 }

@@ -35,13 +35,13 @@ public class TestDescriptors {
             Mat image1 = IOUtils.readGreyscaleFromFile(new File(test.getLeft()));
             Mat image2 = IOUtils.readGreyscaleFromFile(new File(test.getMiddle()));
 
-            test(image1, image2, Patches::calculate, test.getRight() + "-patches");
-            test(image1, image2, HOG::calculate, test.getRight() + "-hog");
+            test("detectors", image1, image2, Patches::calculate, test.getRight() + "-patches");
+            test("detectors", image1, image2, HOG::calculate, test.getRight() + "-hog");
         }
     }
 
-    private static void test(Mat image1, Mat image2,
-                             BiFunction<Mat, List<PointOfInterest>, List<Descriptor>> func, String name) {
+    public static void test(String folder, Mat image1, Mat image2,
+                            BiFunction<Mat, List<PointOfInterest>, List<Descriptor>> func, String name) {
         List<PointOfInterest> points1 = getPoints(image1), points2 = getPoints(image2);
         List<Descriptor> descriptors1 = func.apply(image1, points1), descriptors2 = func.apply(image2, points2);
 
@@ -61,7 +61,7 @@ public class TestDescriptors {
                                to.getX() + image1.getWidth() + X_DISTANCE, to.getY() + Y_OFFSET);
         }
 
-        IOUtils.writeToJpegFile(result, new File("test/detectors/" + name + ".jpeg"));
+        IOUtils.writeToJpegFile(result, new File("test/" + folder + "/" + name + ".jpeg"));
     }
 
     private static List<PointOfInterest> getPoints(Mat image) {
