@@ -18,7 +18,7 @@ public class DescriptorsCommon {
     }
 
     public static Function<PointOfInterest, Vector> gridMapper(int gridSize, int blockSize,
-                                                        BiFunction<Range, Range, Vector> blockMapper) {
+                                                               BiFunction<Range, Range, Vector> blockMapper) {
         return (point) -> {
             int cornerX = point.getX() - gridSize * blockSize / 2;
             int cornerY = point.getY() - gridSize * blockSize / 2;

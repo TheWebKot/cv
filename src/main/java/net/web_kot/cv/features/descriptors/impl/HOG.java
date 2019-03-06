@@ -5,19 +5,19 @@ import net.web_kot.cv.features.descriptors.Descriptor;
 import net.web_kot.cv.mat.EdgeWrapMode;
 import net.web_kot.cv.mat.Mat;
 import net.web_kot.cv.mat.Vector;
+import net.web_kot.cv.processors.convolution.impl.Gauss;
 import net.web_kot.cv.processors.convolution.impl.gradient.Gradient;
 import net.web_kot.cv.processors.convolution.impl.gradient.GradientMatrices;
 
 import java.util.List;
 
 import static net.web_kot.cv.features.descriptors.DescriptorsCommon.*;
-import static net.web_kot.cv.utils.MathUtils.sqr;
 
 public class HOG {
 
     private static final int DEFAULT_BINS_COUNT = 8;
 
-    private static final int DEFAULT_GRID_SIZE = 2;
+    private static final int DEFAULT_GRID_SIZE = 4;
     private static final int DEFAULT_BLOCK_SIZE = 4;
 
     public static List<Descriptor> calculate(Mat image, Iterable<PointOfInterest> points) {
@@ -25,41 +25,36 @@ public class HOG {
     }
 
     public static List<Descriptor> calculate(Mat image, Iterable<PointOfInterest> points,
-                                      int gridSize, int blockSize, int binsCount) {
+                                             int gridSize, int blockSize, int binsCount) {
+        Mat gauss = Gauss.getFullKernel(DEFAULT_GRID_SIZE * DEFAULT_BLOCK_SIZE / 3D);
+        int gaussK = gauss.getWidth() / 2;
+
         Mat dx = image.withSameSize(), dy = image.withSameSize(), gradient = image.withSameSize();
         Gradient.apply(image, gradient, dx, dy, GradientMatrices.SOBEL);
 
         EdgeWrapMode mode = EdgeWrapMode.DEFAULT;
-        return map(points, center -> {
-            double maxRadius = gridSize * blockSize / Math.sqrt(2);
+        return map(points, center -> gridMapper(gridSize, blockSize, (xRange, yRange) -> {
+            double[] bins = new double[binsCount];
+            double step = 2 * Math.PI / binsCount;
 
-            return gridMapper(gridSize, blockSize, (xRange, yRange) -> {
-                double[] bins = new double[binsCount];
-                double step = 2 * Math.PI / binsCount;
+            for(int x = xRange.fromInclusive(); x < xRange.toExclusive(); x++)
+                for(int y = yRange.fromInclusive(); y <= yRange.toExclusive(); y++) {
+                    int deltaX = x - center.getX(), deltaY = y - center.getY();
+                    double multiplier = gauss.get(deltaX + gaussK, deltaY + gaussK);
 
-                for(int x = xRange.fromInclusive(); x < xRange.toExclusive(); x++)
-                    for(int y = yRange.fromInclusive(); y <= yRange.toExclusive(); y++) {
-                        double theta = Math.atan2(dy.get(x, y, mode), dx.get(x, y, mode)) + Math.PI;
+                    double theta = Math.atan2(dy.get(x, y, mode), dx.get(x, y, mode)) + Math.PI;
+                    double value = gradient.get(x, y, mode) * multiplier;
 
-                        double distance = Math.sqrt(sqr(center.getX() - x) + sqr(center.getY() - y));
-                        double value = gradient.get(x, y, mode) * distanceBasedCoefficient(distance, maxRadius);
+                    int leftBean = Math.min((int)Math.floor(theta / step), binsCount - 1);
+                    int rightBean = (leftBean + 1) % binsCount;
 
-                        int leftBean = Math.min((int)Math.floor(theta / step), binsCount - 1);
-                        int rightBean = (leftBean + 1) % binsCount;
+                    double ratio = (theta % step) / step;
+                    bins[leftBean] += value * ratio;
+                    bins[rightBean] += value * (1 - ratio);
+                }
 
-                        double ratio = (theta % step) / step;
-                        bins[leftBean] += value * ratio;
-                        bins[rightBean] += value * (1 - ratio);
-                    }
-
-                return Vector.from(bins);
-            }).apply(center);
-        });
-    }
-
-    private static double distanceBasedCoefficient(double distance, double maxDistance) {
-        if(distance > maxDistance * 0.78) return 0;
-        return 1;
+            return Vector.from(bins);
+        }).apply(center));
     }
 
 }
