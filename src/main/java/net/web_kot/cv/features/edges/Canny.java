@@ -82,7 +82,7 @@ public class Canny {
         double a = image.get(x + DX[u], y + DY[u], EdgeWrapMode.DEFAULT);
         double b = image.get(x + DX[v], y + DY[v], EdgeWrapMode.DEFAULT);
 
-        return a * (angle / PI_DIVIDE_4) + b * (1 - angle / PI_DIVIDE_4);
+        return a * (1 - angle / PI_DIVIDE_4) + b * (angle / PI_DIVIDE_4);
     }
 
     private static void dfs(Type[][] matrix, boolean[][] used, int x, int y, int radius) {

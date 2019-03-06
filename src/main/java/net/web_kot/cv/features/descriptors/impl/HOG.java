@@ -45,12 +45,12 @@ public class HOG {
                     double theta = Math.atan2(dy.get(x, y, mode), dx.get(x, y, mode)) + Math.PI;
                     double value = gradient.get(x, y, mode) * multiplier;
 
-                    int leftBean = Math.min((int)Math.floor(theta / step), binsCount - 1);
-                    int rightBean = (leftBean + 1) % binsCount;
+                    int leftBin = Math.min((int)Math.floor(theta / step), binsCount - 1);
+                    int rightBin = (leftBin + 1) % binsCount;
 
                     double ratio = (theta % step) / step;
-                    bins[leftBean] += value * ratio;
-                    bins[rightBean] += value * (1 - ratio);
+                    bins[leftBin] += value * (1 - ratio);
+                    bins[rightBin] += value * ratio;
                 }
 
             return Vector.from(bins);
