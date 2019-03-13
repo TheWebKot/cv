@@ -60,6 +60,14 @@ public class Mat {
         return x < 0 || x >= getWidth() || y < 0 || y >= getHeight();
     }
 
+    public double[][] toMatrix() {
+        double[][] matrix = new double[getHeight()][getWidth()];
+        for(int y = 0; y < matrix.length; y++)
+            for(int x = 0; x < matrix[0].length; x++)
+                matrix[y][x] = get(x, y);
+        return matrix;
+    }
+
     public Mat copy() {
         return new Mat(this);
     }

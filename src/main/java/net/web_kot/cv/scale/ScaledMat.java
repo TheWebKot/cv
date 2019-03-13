@@ -76,7 +76,7 @@ public class ScaledMat extends Mat {
         return modify(value, -octave);
     }
 
-    private int modify(int value, int offset) {
+    public static int modify(int value, int offset) {
         if(offset < 0) return value >> (-offset);
         return value << offset;
     }

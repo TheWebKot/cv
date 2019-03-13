@@ -14,6 +14,11 @@ public class Harris {
     }
 
     public static Mat find(Mat image, int k, double threshold, EdgeWrapMode mode) {
+        Mat lambdas = findRaw(image, k, mode);
+        return CornersDetectionCommon.normalizeAndFilter(lambdas, threshold);
+    }
+
+    public static Mat findRaw(Mat image, int k, EdgeWrapMode mode) {
         Mat gauss = Gauss.getFullKernel(k / 3D);
         int gaussK = gauss.getWidth() / 2;
 
@@ -34,14 +39,14 @@ public class Harris {
                         C += multiplier * MathUtils.sqr(dy.get(x + u, y + v, mode));
                     }
 
-                lambdas.set(x, y, calcLambdaMin(A, B, C));
+                lambdas.set(x, y, calcLambdaMin(new double[][]{{A, B}, {B, C}}));
             }
 
-        return CornersDetectionCommon.normalizeAndFilter(lambdas, threshold);
+        return lambdas;
     }
 
-    private static double calcLambdaMin(double A, double B, double C) {
-        double a = 1, b = -(A + C), c = A * C - B * B;
+    public static double calcLambdaMin(double[][] mat) {
+        double a = 1, b = -(mat[0][0] + mat[1][1]), c = mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0];
         double D = b * b - 4 * a * c;
 
         if(D < 0 && D > -1e-6) D = 0;

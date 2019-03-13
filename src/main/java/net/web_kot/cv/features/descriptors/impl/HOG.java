@@ -8,6 +8,7 @@ import net.web_kot.cv.mat.Vector;
 import net.web_kot.cv.processors.convolution.impl.Gauss;
 import net.web_kot.cv.processors.convolution.impl.gradient.Gradient;
 import net.web_kot.cv.processors.convolution.impl.gradient.GradientMatrices;
+import net.web_kot.cv.scale.ScaledMat;
 
 import java.util.List;
 
@@ -45,13 +46,16 @@ public class HOG {
         EdgeWrapMode mode = EdgeWrapMode.DEFAULT;
         int gaussK = gauss.getWidth() / 2;
 
+        int centerX = ScaledMat.modify(center.getX(), -center.getOctave());
+        int centerY = ScaledMat.modify(center.getY(), -center.getOctave());
+
         double[][][] bins = new double[gridSize][gridSize][binsCount];
         double step = 2 * Math.PI / binsCount;
 
         int from = gridSize * blockSize / 2, to = gridSize * blockSize - from;
         for(int u = -from; u < to; u++)
             for(int v = -from; v < to; v++) {
-                int x = center.getX() + u, y = center.getY() + v;
+                int x = centerX + u, y = centerY + v;
 
                 double theta = Math.atan2(dy.get(x, y, mode), dx.get(x, y, mode)) + Math.PI;
                 double value = gradient.get(x, y, mode);

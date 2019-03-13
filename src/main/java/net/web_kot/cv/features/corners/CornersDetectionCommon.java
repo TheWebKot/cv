@@ -10,7 +10,10 @@ import java.util.List;
 public class CornersDetectionCommon {
 
     public static Mat normalizeAndFilter(Mat mat, double threshold) {
-        mat = Normalization.apply(mat);
+        return filter(Normalization.apply(mat), threshold);
+    }
+
+    public static Mat filter(Mat mat, double threshold) {
         Mat result = mat.withSameSize();
 
         for(int x = 0; x < mat.getWidth(); x++)

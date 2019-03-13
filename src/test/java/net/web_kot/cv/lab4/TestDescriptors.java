@@ -16,8 +16,11 @@ import org.apache.commons.lang3.tuple.Triple;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class TestDescriptors {
 
@@ -42,17 +45,20 @@ public class TestDescriptors {
 
     public static void test(String folder, Mat image1, Mat image2,
                             BiFunction<Mat, List<PointOfInterest>, List<Descriptor>> func, String name) {
-        List<PointOfInterest> points1 = getPoints(image1), points2 = getPoints(image2);
-        List<Descriptor> descriptors1 = func.apply(image1, points1), descriptors2 = func.apply(image2, points2);
+        test(folder, image1, image2, image -> func.apply(image, getPoints(image)), name, false);
+    }
 
-        List<Pair<Descriptor, Descriptor>> matching = Matcher.match(descriptors1, descriptors2);
+    public static void test(String folder, Mat image1, Mat image2,
+                            Function<Mat, List<Descriptor>> func, String name, boolean extended) {
+        List<Descriptor> desc1 = func.apply(image1), desc2 = func.apply(image2);
+        List<Pair<Descriptor, Descriptor>> matching = Matcher.match(desc1, desc2);
 
         int width = image1.getWidth() + image2.getWidth() + X_DISTANCE;
         int height = Math.max(image1.getHeight(), image2.getHeight() + Y_OFFSET);
 
         BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        DrawUtils.drawImage(result, drawPoints(image1, points1), 0, 0);
-        DrawUtils.drawImage(result, drawPoints(image2, points2), image1.getWidth() + X_DISTANCE, Y_OFFSET);
+        DrawUtils.drawImage(result, drawPoints(image1, desc1, extended), 0, 0);
+        DrawUtils.drawImage(result, drawPoints(image2, desc2, extended), image1.getWidth() + X_DISTANCE, Y_OFFSET);
 
         for(Pair<Descriptor, Descriptor> match : matching) {
             PointOfInterest from = match.getLeft().getPoint(), to = match.getRight().getPoint();
@@ -69,9 +75,14 @@ public class TestDescriptors {
         return NonMaximumSuppression.filter(harris, 30);
     }
 
-    private static BufferedImage drawPoints(Mat image, List<PointOfInterest> points) {
+    private static BufferedImage drawPoints(Mat image, List<Descriptor> descriptors, boolean extended) {
         BufferedImage result = IOUtils.toBufferedImage(image);
-        DrawUtils.drawCorners(result, points);
+        if(!extended) {
+            List<PointOfInterest> points = descriptors.stream().map(Descriptor::getPoint).collect(Collectors.toList());
+            DrawUtils.drawCorners(result, points);
+        } else {
+            DrawUtils.drawDescriptors(result, descriptors);
+        }
         return result;
     }
 

@@ -54,7 +54,7 @@ public class RotationInvariant {
                 descriptors.add(Descriptor.of(point, toVector(
                         calculateHistograms(gradient, dx, dy, gauss, gridSize, blockSize, binsCount, point, angle),
                         gridSize, binsCount
-                )));
+                )).setAngle(angle));
         }
 
         return descriptors;

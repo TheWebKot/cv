@@ -14,8 +14,7 @@ public class NonMaximumSuppression {
     private static final double C_ROBUST = 0.9;
 
     public static List<PointOfInterest> filter(Mat mat, int minAmount) {
-        double maxRadius = Math.sqrt(MathUtils.sqr(mat.getWidth()) + MathUtils.sqr(mat.getHeight()));
-        return filter(CornersDetectionCommon.matToPoints(mat), minAmount, maxRadius);
+        return filter(CornersDetectionCommon.matToPoints(mat), minAmount, maxRadius(mat));
     }
 
     public static List<PointOfInterest> filter(List<PointOfInterest> pointsList, int minAmount, double maxRadius) {
@@ -78,6 +77,10 @@ public class NonMaximumSuppression {
 
         radiuses.sort(Comparator.comparingDouble((ToDoubleFunction<Pair<?, Double>>) Pair::getRight).reversed());
         return radiuses.stream().limit(amount).map(Pair::getLeft).collect(Collectors.toList());
+    }
+
+    public static double maxRadius(Mat mat) {
+        return Math.sqrt(MathUtils.sqr(mat.getWidth()) + MathUtils.sqr(mat.getHeight()));
     }
 
 }
