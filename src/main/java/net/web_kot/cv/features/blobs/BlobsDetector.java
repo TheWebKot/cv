@@ -5,66 +5,51 @@ import net.web_kot.cv.mat.Mat;
 import net.web_kot.cv.scale.Pyramid;
 import net.web_kot.cv.scale.ScaledMat;
 import net.web_kot.cv.utils.PointUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.IntStream;
 
 public class BlobsDetector {
 
     private static final int OCTAVE_SIZE = 8;
 
     public static ArrayList<Blob> find(Mat image) {
-        Pyramid pyramid = Pyramid.build(image, OCTAVE_SIZE, 0.8, 1.6);
+        Pyramid pyramid = Pyramid.build(image, OCTAVE_SIZE, 0.8, 1.6, true);
+        int layersNum = pyramid.getOctaveSize();
 
         ArrayList<Blob> blobs = new ArrayList<>();
-        for(int i = 0; i < pyramid.getOctavesCount(); i++) {
-            List<ScaledMat> octave = pyramid.getOctave(i);
-            int width = octave.get(0).withoutScaling().getWidth(), height = octave.get(0).withoutScaling().getHeight();
+        for(int octave = -1; octave < pyramid.getOctavesCount(); octave++) {
+            for(int layer = 1; layer <= layersNum; layer++) {
+                if(octave == -1) layer = layersNum;
 
-            List<Pair<Mat, Double>> DoG = buildDoG(pyramid, i);
-            for(int j = 1; j < DoG.size() - 1; j++) {
-                Mat current = DoG.get(j).getKey();
+                Mat current = pyramid.getDoG(octave, layer);
 
-                for(int x = 0; x < width; x++)
-                    for(int y = 0; y < height; y++) {
+                for(int x = 0; x < current.getWidth(); x++)
+                    for(int y = 0; y < current.getHeight(); y++) {
                         double value = current.get(x, y);
 
                         boolean localMaximum = true, localMinimum = true;
                         for(PointUtils.Delta d : PointUtils.neighborhood3D()) {
-                            double check = DoG.get(j + d.z()).getKey().get(x + d.x(), y + d.y(), EdgeWrapMode.DEFAULT);
+                            Mat mat = pyramid.getDoG(octave, layer + d.z());
+                            double check = mat.get(x + d.x(), y + d.y(), EdgeWrapMode.DEFAULT);
 
                             localMaximum &= check < value;
                             localMinimum &= check > value;
                         }
 
-                        if(localMaximum || localMinimum)
-                            blobs.add(new Blob(x << i, y << i, DoG.get(j).getValue() * Math.sqrt(2)));
+                        if(localMaximum || localMinimum) {
+                            int delta = ScaledMat.modify(1, octave) / 2;
+
+                            int px = ScaledMat.modify(x, octave) + delta;
+                            int py = ScaledMat.modify(y, octave) + delta;
+
+                            double sigma = pyramid.getSigma0() * Math.pow(2, octave + layer * 1D / layersNum);
+                            blobs.add(new Blob(px, py, sigma * Math.sqrt(2)));
+                        }
                     }
             }
         }
 
         return blobs;
-    }
-
-    public static List<Pair<Mat, Double>> buildDoG(Pyramid pyramid, int octaveIndex) {
-        List<ScaledMat> octave = pyramid.getOctave(octaveIndex);
-        int width = octave.get(0).withoutScaling().getWidth(), height = octave.get(0).withoutScaling().getHeight();
-
-        ArrayList<Pair<Mat, Double>> DoG = new ArrayList<>(octave.size() - 1);
-        for(int j = 0; j < octave.size() - 1; j++) {
-            Mat mat = octave.get(j).withoutScaling(), next = octave.get(j + 1).withoutScaling();
-            Mat difference = mat.withSameSize();
-
-            for(int x = 0; x < width; x++)
-                for(int y = 0; y < height; y++)
-                    difference.set(x, y, next.get(x, y) - mat.get(x, y));
-
-            DoG.add(Pair.of(difference, octave.get(j).getEffectiveSigma()));
-        }
-
-        return DoG;
     }
 
 }

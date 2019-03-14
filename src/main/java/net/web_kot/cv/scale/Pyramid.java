@@ -8,7 +8,6 @@ import net.web_kot.cv.mat.Mat;
 import net.web_kot.cv.processors.convolution.Convolution;
 import net.web_kot.cv.processors.convolution.impl.Gauss;
 import net.web_kot.cv.utils.MatUtils;
-import net.web_kot.cv.utils.MathUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -106,7 +105,7 @@ public class Pyramid {
             Mat currentImage = gauss(prevImage, sigmaPrev, sigmaCurrent);
 
             list.add(new ScaledMat(currentImage, octave, i + 1, sigmaCurrent, sigmaCurrent * pow(2, octave)));
-            dogList.add(MatUtils.absDiff(currentImage, prevImage));
+            dogList.add(MatUtils.diff(currentImage, prevImage));
 
             sigmaPrev = sigmaCurrent;
         }

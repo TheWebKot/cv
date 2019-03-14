@@ -10,8 +10,6 @@ import net.web_kot.cv.processors.common.Normalization;
 import net.web_kot.cv.scale.Pyramid;
 import net.web_kot.cv.scale.ScaledMat;
 import net.web_kot.cv.utils.MatUtils;
-import net.web_kot.cv.utils.MathUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
 
@@ -33,7 +31,7 @@ public class HarrisLaplace {
         Pyramid pyramid = Pyramid.build(image, OCTAVE_SIZE, 0.5, PYRAMID_SIGMA, true);
 
         double maxRadius = NonMaximumSuppression.maxRadius(image);
-        List<PointOfInterest> points = NonMaximumSuppression.filter(findPoints(pyramid, image), maxPoints, maxRadius);
+        List<PointOfInterest> points = NonMaximumSuppression.filter(findPoints(pyramid), maxPoints, maxRadius);
 
         HashMap<ScaledMat, LinkedList<PointOfInterest>> groups = new HashMap<>();
         for(PointOfInterest point : points) {
@@ -47,10 +45,18 @@ public class HarrisLaplace {
         for(Map.Entry<ScaledMat, LinkedList<PointOfInterest>> group : groups.entrySet())
             descriptors.addAll(RotationInvariant.calculate(group.getKey().withoutScaling(), group.getValue()));
 
+        for(Descriptor d : descriptors) {
+            double[] buffer = d.getVector().getBuffer();
+            for(int i = 0; i < buffer.length; i++)
+                if(buffer[i] > 0.2) buffer[i] = 0.2;
+
+            d.getVector().normalize();
+        }
+
         return descriptors;
     }
 
-    private static List<PointOfInterest> findPoints(Pyramid pyramid, Mat image) {
+    private static List<PointOfInterest> findPoints(Pyramid pyramid) {
         int layersNum = pyramid.getOctaveSize();
 
         ArrayList<PointOfInterest> points = new ArrayList<>();
@@ -83,7 +89,7 @@ public class HarrisLaplace {
                         int pointX = (int)Math.round(x * k + k / 2);
                         int pointY = (int)Math.round(y * k + k / 2);
 
-                        points.add(new PointOfInterest(pointX, pointY, value).setOctave(octave).setLayer(layer));
+                        points.add(new PointOfInterest(pointX, pointY, value).setOctave(octave).setLayer(layer - 1));
                     }
             }
         }

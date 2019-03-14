@@ -44,12 +44,11 @@ public class MatUtils {
         return result;
     }
 
-    public static Mat absDiff(Mat a, Mat b) {
+    public static Mat diff(Mat a, Mat b) {
         Mat result = a.withSameSize();
-        double[] buffer = result.getBuffer(), bufferA = a.getBuffer(), bufferB = b.getBuffer();
 
-        for(int i = 0; i < buffer.length; i++)
-            buffer[i] = Math.abs(bufferA[i] - bufferB[i]);
+        double[] buffer = result.getBuffer(), bufferA = a.getBuffer(), bufferB = b.getBuffer();
+        for(int i = 0; i < buffer.length; i++) buffer[i] = bufferA[i] - bufferB[i];
 
         return result;
     }
