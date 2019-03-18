@@ -1,6 +1,10 @@
 package net.web_kot.cv.processors.common;
 
+import net.web_kot.cv.features.corners.PointOfInterest;
 import net.web_kot.cv.mat.Mat;
+
+import java.util.Iterator;
+import java.util.List;
 
 public class Normalization {
 
@@ -28,6 +32,27 @@ public class Normalization {
 
         for(int i = 0; i < source.length; i++)
             target[i] = (source[i] - min) * (newMax - newMin) / (max - min) + newMin;
+    }
+
+    public static void apply(List<PointOfInterest> points) {
+        int newMin = 0, newMax = 1;
+        Iterator<PointOfInterest> iterator = points.iterator();
+
+        PointOfInterest p = iterator.next();
+        double min = p.getValue(), max = min;
+
+        while(iterator.hasNext()) {
+            double value = iterator.next().getValue();
+
+            min = Math.min(min, value);
+            max = Math.max(max, value);
+        }
+
+        iterator = points.iterator();
+        while(iterator.hasNext()) {
+            p = iterator.next();
+            p.setValue((p.getValue() - min) * (newMax - newMin) / (max - min) + newMin);
+        }
     }
 
 }

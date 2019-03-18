@@ -1,96 +1,40 @@
 package net.web_kot.cv.features.descriptors.impl;
 
+import net.web_kot.cv.features.blobs.Blob;
+import net.web_kot.cv.features.blobs.BlobsDetector;
 import net.web_kot.cv.features.corners.Harris;
-import net.web_kot.cv.features.corners.NonMaximumSuppression;
 import net.web_kot.cv.features.corners.PointOfInterest;
-import net.web_kot.cv.features.descriptors.Descriptor;
-import net.web_kot.cv.mat.EdgeWrapMode;
 import net.web_kot.cv.mat.Mat;
-import net.web_kot.cv.processors.common.Normalization;
 import net.web_kot.cv.scale.Pyramid;
-import net.web_kot.cv.scale.ScaledMat;
-import net.web_kot.cv.utils.MatUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
 
 public class HarrisLaplace {
 
-    private static final int OCTAVE_SIZE = 4;
-    private static final double PYRAMID_SIGMA = 1;
-
     private static final int HARRIS_WINDOW_SIZE = 3;
-    private static final double HARRIS_THRESHOLD = 0.1;
+    private static final double HARRIS_THRESHOLD = 0.02;
 
-    private static final double DOG_THRESHOLD = 0.01;
+    private static final double DOG_THRESHOLD = 0.03;
 
-    public static List<Descriptor> calculate(Mat image) {
-        return calculate(image, 50);
-    }
-
-    public static List<Descriptor> calculate(Mat image, int maxPoints) {
-        Pyramid pyramid = Pyramid.build(image, OCTAVE_SIZE, 0.5, PYRAMID_SIGMA, true);
-
-        double maxRadius = NonMaximumSuppression.maxRadius(image);
-        List<PointOfInterest> points = NonMaximumSuppression.filter(findPoints(pyramid), maxPoints, maxRadius);
-
-        HashMap<ScaledMat, LinkedList<PointOfInterest>> groups = new HashMap<>();
-        for(PointOfInterest point : points) {
-            ScaledMat target = pyramid.get(point.getOctave(), point.getLayer());
-
-            LinkedList<PointOfInterest> group = groups.computeIfAbsent(target, k -> new LinkedList<>());
-            group.add(point);
-        }
-
-        ArrayList<Descriptor> descriptors = new ArrayList<>();
-        for(Map.Entry<ScaledMat, LinkedList<PointOfInterest>> group : groups.entrySet())
-            descriptors.addAll(RotationInvariant.calculate(group.getKey().withoutScaling(), group.getValue()));
-
-        for(Descriptor d : descriptors) {
-            double[] buffer = d.getVector().getBuffer();
-            for(int i = 0; i < buffer.length; i++)
-                if(buffer[i] > 0.2) buffer[i] = 0.2;
-
-            d.getVector().normalize();
-        }
-
-        return descriptors;
-    }
-
-    private static List<PointOfInterest> findPoints(Pyramid pyramid) {
-        int layersNum = pyramid.getOctaveSize();
+    public static List<PointOfInterest> findKeyPoints(Pyramid pyramid) {
+        HashMap<Pair<Integer, Integer>, Harris> cache = new HashMap<>();
 
         ArrayList<PointOfInterest> points = new ArrayList<>();
-        for(int octave = -1; octave < pyramid.getOctavesCount(); octave++) {
-            for(int layer = 1; layer <= layersNum; layer++) {
-                if(octave == -1) layer = layersNum; // Only last image on -1 octave
+        for(Blob b : BlobsDetector.find(pyramid)) {
+            if(Math.abs(b.getRaw().getValue()) < DOG_THRESHOLD) continue;
 
-                Mat layerMat = pyramid.get(octave, layer - 1).withoutScaling();
+            Harris detector = cache.computeIfAbsent(Pair.of(b.getRaw().getOctave(), b.getRaw().getLayer()), p ->
+                    Harris.detector(pyramid.get(p.getLeft(), p.getRight()).withoutScaling(), HARRIS_WINDOW_SIZE)
+            );
 
-                Mat response = Harris.findRaw(layerMat, HARRIS_WINDOW_SIZE, EdgeWrapMode.DEFAULT);
-                response = Normalization.apply(response);
+            double value = detector.calc(b.getRaw().getX(), b.getRaw().getY());
+            if(value >= HARRIS_THRESHOLD) {
+                int octave = b.getRaw().getOctave(), layer = b.getRaw().getLayer();
+                double size = pyramid.getSigma0() * Math.pow(2, octave + layer / pyramid.getOctaveSize() + 1);
 
-                Mat dilate = MatUtils.dilate(response);
-
-                Mat prev = pyramid.getDoG(octave, layer - 1);
-                Mat current = pyramid.getDoG(octave, layer);
-                Mat next = pyramid.getDoG(octave, layer + 1);
-
-                for(int x = 1; x < layerMat.getWidth() - 1; x++)
-                    for(int y = 1; y < layerMat.getHeight() - 1; y++) {
-                        double value = response.get(x, y);
-                        if(value < HARRIS_THRESHOLD) continue;
-                        if(Math.abs(value - dilate.get(x, y)) > 1e-6) continue;
-
-                        if(current.get(x, y) < DOG_THRESHOLD) continue;
-                        if(prev.get(x, y) >= current.get(x, y) || current.get(x, y) <= next.get(x, y)) continue;
-
-                        double k = Math.pow(2, octave);
-
-                        int pointX = (int)Math.round(x * k + k / 2);
-                        int pointY = (int)Math.round(y * k + k / 2);
-
-                        points.add(new PointOfInterest(pointX, pointY, value).setOctave(octave).setLayer(layer - 1));
-                    }
+                PointOfInterest point = new PointOfInterest(b.getX(), b.getY(), value);
+                points.add(point.setLayer(octave).setLayer(layer).setSize(size));
             }
         }
 

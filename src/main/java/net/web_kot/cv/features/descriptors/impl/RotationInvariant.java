@@ -28,7 +28,6 @@ public class RotationInvariant {
 
     public static List<Descriptor> calculate(Mat image, Iterable<PointOfInterest> points,
                                              int gridSize, int blockSize, int binsCount) {
-        Mat gauss = Gauss.getFullKernel(DEFAULT_GRID_SIZE * DEFAULT_BLOCK_SIZE / 3D);
         double fullStep = 2 * Math.PI / FULL_BINS_COUNT;
 
         Mat dx = image.withSameSize(), dy = image.withSameSize(), gradient = image.withSameSize();
@@ -36,23 +35,32 @@ public class RotationInvariant {
 
         ArrayList<Descriptor> descriptors = new ArrayList<>();
         for(PointOfInterest point : points) {
+            double sigma = gridSize * blockSize / 3D, sigma2 = sigma;
+            if(point.getSize() != null) {
+                double scale = point.getSize() / Math.pow(2, point.getOctave() + 1);
+
+                sigma = 1.5 * scale;
+                sigma2 = gridSize * blockSize / 3D * scale;
+            }
+
             // Calculate histograms for full patch with FULL_BINS_COUNT bins
-            double[] full = calculateHistograms(gradient, dx, dy, gauss,
-                                                1, gridSize * blockSize, FULL_BINS_COUNT, point, 0)[0][0];
+            double[] full = calculateHistograms(gradient, dx, dy, Gauss.getFullKernel(sigma),
+                                                1, (int)Math.round(sigma * 3) * 2 + 1, FULL_BINS_COUNT, point, 0)[0][0];
 
             // Peaks
             int peak = findMaximum(full, -1);
             int secondPeak = findMaximum(full, peak);
 
             ArrayList<Double> angles = new ArrayList<>();
-            angles.add(peak * fullStep);
+            angles.add(2 * Math.PI - peak * fullStep);
 
             if(full[secondPeak] / full[peak] > NEXT_PEAK_THRESHOLD) angles.add(secondPeak * fullStep);
 
-            // Rotate and calculate descriptor
+            // Rotate and findKeyPoints descriptor
+            Mat gauss2 = Gauss.getFullKernel(sigma2);
             for(Double angle : angles)
                 descriptors.add(Descriptor.of(point, toVector(
-                        calculateHistograms(gradient, dx, dy, gauss, gridSize, blockSize, binsCount, point, angle),
+                        calculateHistograms(gradient, dx, dy, gauss2, gridSize, blockSize, binsCount, point, angle),
                         gridSize, binsCount
                 )).setAngle(angle));
         }

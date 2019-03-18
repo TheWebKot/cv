@@ -4,15 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @AllArgsConstructor
-public class Blob {
-
-    @Getter
-    private RawBlob raw;
+public class RawBlob {
 
     @Getter
     private int x, y;
 
     @Getter
-    private double radius;
+    private int octave, layer;
+
+    @Getter
+    private double value;
 
 }

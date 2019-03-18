@@ -19,7 +19,6 @@ public class TestBlob {
         List<Blob> blobs = BlobsDetector.find(image);
 
         BufferedImage result = IOUtils.toBufferedImage(image);
-        DrawUtils.enableAntiAliasing(result);
 
         for(Blob b : blobs)
             DrawUtils.drawCircle(result, b.getX(), b.getY(), (int)Math.round(b.getRadius()), Color.YELLOW);

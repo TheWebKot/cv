@@ -16,7 +16,8 @@ public class TestRotationInvariant {
     private static final List<Triple<String, String, String>> IMAGES = ImmutableList.of(
             Triple.of("test/cat2.jpg", "test/cat2-transformed.jpg", "cat-transformed"),
             Triple.of("test/cat2.jpg", "test/cat2-rotated.jpg", "cat"),
-            Triple.of("test/mimimi.jpg", "test/mimimi-side.jpg", "mimimi")
+            Triple.of("test/mimimi.jpg", "test/mimimi-side.jpg", "mimimi"),
+            Triple.of("test/cat2.jpg", "test/cat2.jpg", "same")
     );
 
     public static void main(String[] args) {

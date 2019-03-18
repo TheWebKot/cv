@@ -5,13 +5,14 @@ import net.web_kot.cv.features.descriptors.Descriptor;
 import net.web_kot.cv.mat.Mat;
 
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
 public class DrawUtils {
 
     private static final int CORNER_CIRCLE_RADIUS = 3;
-    private static final int POINT_CROSS_SIZE = 3;
 
     public static void drawCorners(BufferedImage image, Mat corners) {
         for(int x = 0; x < corners.getWidth(); x++)
@@ -28,27 +29,23 @@ public class DrawUtils {
 
     public static void drawDescriptors(BufferedImage image, List<Descriptor> descriptors) {
         Graphics2D g = (Graphics2D)image.getGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
         for(Descriptor d : descriptors) {
             PointOfInterest p = d.getPoint();
 
             Color color = ColorUtils.getSpectrum(p.getValue());
             g.setColor(color);
 
-            g.setStroke(new BasicStroke(1));
-            g.drawLine(p.getX() - POINT_CROSS_SIZE, p.getY(), p.getX() + POINT_CROSS_SIZE, p.getY());
-            g.drawLine(p.getX(), p.getY() - POINT_CROSS_SIZE, p.getX(), p.getY() + POINT_CROSS_SIZE);
+            double radius = p.getSize() == null ? 12 : p.getSize() / 2;
 
-            g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 128));
+            g.setStroke(new BasicStroke(1.2f));
+            g.draw(new Ellipse2D.Double(p.getX() - radius, p.getY() - radius, radius * 2, radius * 2));
 
-            int radius = (int)Math.round((p.getOctave() == -1 ? 1 : 1 << p.getOctave()) * 1.5);
-            g.setStroke(new BasicStroke(1));
-            g.drawOval(p.getX() - radius, p.getY() - radius, radius * 2, radius * 2);
+            double rotatedX = radius * Math.cos(d.getAngle());
+            double rotatedY = -radius * Math.sin(d.getAngle());
 
-            double angle = d.getAngle();
-            int rotatedX = (int)Math.round(radius * Math.cos(angle));
-            int rotatedY = (int)Math.round(-radius * Math.sin(angle));
-
-            g.drawLine(p.getX(), p.getY(), p.getX() + rotatedX, p.getY() + rotatedY);
+            g.draw(new Line2D.Double(p.getX(), p.getY(), p.getX() + rotatedX, p.getY() + rotatedY));
         }
     }
 
@@ -75,11 +72,6 @@ public class DrawUtils {
         g.setColor(new Color(1, 0, 0, 0.5f));
         g.setStroke(new BasicStroke(2));
         g.drawLine(fromX, fromY, toX, toY);
-    }
-
-    public static void enableAntiAliasing(BufferedImage image) {
-        ((Graphics2D)image.getGraphics()).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                                                           RenderingHints.VALUE_ANTIALIAS_ON);
     }
 
 }

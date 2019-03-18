@@ -57,15 +57,17 @@ public class HOG {
             for(int v = -from; v < to; v++) {
                 int x = centerX + u, y = centerY + v;
 
-                double theta = Math.atan2(dy.get(x, y, mode), dx.get(x, y, mode)) + Math.PI;
+                double theta = Math.atan2(dy.get(x, y, mode), dx.get(x, y, mode));
+                if(theta < 0) theta += Math.PI * 2;
+
                 double value = gradient.get(x, y, mode);
 
                 // Rotation
-                int rotatedU = (int)Math.round(u * Math.cos(angle) + v * Math.sin(angle));
-                int rotatedV = (int)Math.round(v * Math.cos(angle) - u * Math.sin(angle));
+                int rotatedU = (int)Math.round(u * Math.cos(-angle) + v * Math.sin(-angle));
+                int rotatedV = (int)Math.round(v * Math.cos(-angle) - u * Math.sin(-angle));
 
-                double rotatedTheta = theta - angle;
-                if(rotatedTheta < 0) rotatedTheta += Math.PI * 2;
+                double rotatedTheta = theta + angle;
+                if(rotatedTheta >= Math.PI * 2) rotatedTheta -= Math.PI * 2;
 
                 // Grid cell location
                 int column = (rotatedU + from) / blockSize;
@@ -74,7 +76,7 @@ public class HOG {
                 if(column < 0 || column >= gridSize || row < 0 || row >= gridSize) continue;
 
                 // Distance-based multiplier
-                value = value * gauss.get(rotatedU + gaussK, rotatedV + gaussK);
+                value = value * gauss.get(rotatedU + gaussK, rotatedV + gaussK, EdgeWrapMode.BLACK);
 
                 // Bins distribution
                 int leftBin = Math.min((int)Math.floor(rotatedTheta / step), binsCount - 1);

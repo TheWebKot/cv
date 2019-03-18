@@ -1,5 +1,7 @@
 package net.web_kot.cv.utils;
 
+import org.apache.commons.math3.linear.*;
+
 public class MathUtils {
 
     public static int normalizeNumber(int minInclusive, int value, int maxExclusive) {
@@ -18,6 +20,18 @@ public class MathUtils {
     public static int nearestGeometricProgressionElement(double a, double q, double value) {
         double y = (Math.log(value) - Math.log(a)) / Math.log(q);
         return (int)Math.round(y);
+    }
+
+    public static double[] solveLU(double[][] A, double[] B) {
+        LUDecomposition decomposition = new LUDecomposition(new Array2DRowRealMatrix(A));
+        RealVector vector = decomposition.getSolver().solve(new ArrayRealVector(B));
+        return vector.toArray();
+    }
+
+    public static double dot(double[] a, double[] b) {
+        double result = 0;
+        for(int i = 0; i < a.length; i++) result += a[i] * b[i];
+        return result;
     }
 
 }
