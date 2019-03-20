@@ -1,8 +1,11 @@
 package net.web_kot.cv.utils;
 
 import java.awt.*;
+import java.util.Random;
 
 public class ColorUtils {
+
+    private static final Random RANDOM = new Random(ColorUtils.class.getSimpleName().hashCode());
 
     private static final double SPECTRUM_OFFSET = 180D / 255;
 
@@ -23,6 +26,10 @@ public class ColorUtils {
     public static Color getSpectrum(double value) {
         value = 1 - value * SPECTRUM_OFFSET + SPECTRUM_OFFSET;
         return Color.getHSBColor((float)value, 1F, 1F);
+    }
+
+    public static Color randomColor() {
+        return new Color((int)(RANDOM.nextDouble() * 0x1000000));
     }
 
 }

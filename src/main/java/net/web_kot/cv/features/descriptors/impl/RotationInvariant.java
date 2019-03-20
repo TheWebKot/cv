@@ -3,7 +3,6 @@ package net.web_kot.cv.features.descriptors.impl;
 import net.web_kot.cv.features.corners.PointOfInterest;
 import net.web_kot.cv.features.descriptors.Descriptor;
 import net.web_kot.cv.mat.Mat;
-import net.web_kot.cv.processors.convolution.impl.Gauss;
 import net.web_kot.cv.processors.convolution.impl.gradient.Gradient;
 import net.web_kot.cv.processors.convolution.impl.gradient.GradientMatrices;
 
@@ -15,52 +14,43 @@ import static net.web_kot.cv.features.descriptors.impl.HOG.toVector;
 public class RotationInvariant {
 
     private static final int DEFAULT_BINS_COUNT = 8;
-
     private static final int DEFAULT_GRID_SIZE = 4;
-    private static final int DEFAULT_BLOCK_SIZE = 4;
 
     private static final int FULL_BINS_COUNT = 36;
     private static final double NEXT_PEAK_THRESHOLD = 0.8;
 
     public static List<Descriptor> calculate(Mat image, Iterable<PointOfInterest> points) {
-        return calculate(image, points, DEFAULT_GRID_SIZE, DEFAULT_BLOCK_SIZE, DEFAULT_BINS_COUNT);
+        return calculate(image, points, DEFAULT_GRID_SIZE, DEFAULT_BINS_COUNT, false);
     }
 
     public static List<Descriptor> calculate(Mat image, Iterable<PointOfInterest> points,
-                                             int gridSize, int blockSize, int binsCount) {
+                                             int gridSize, int binsCount, boolean triLinear) {
         double fullStep = 2 * Math.PI / FULL_BINS_COUNT;
 
-        Mat dx = image.withSameSize(), dy = image.withSameSize(), gradient = image.withSameSize();
-        Gradient.apply(image, gradient, dx, dy, GradientMatrices.SOBEL);
+        Mat dx = image.withSameSize(), dy = image.withSameSize(), g = image.withSameSize();
+        Gradient.apply(image, g, dx, dy, GradientMatrices.SOBEL);
 
         ArrayList<Descriptor> descriptors = new ArrayList<>();
         for(PointOfInterest point : points) {
-            double sigma = gridSize * blockSize / 3D, sigma2 = sigma;
-            if(point.getSize() != null) {
-                double scale = point.getSize() / Math.pow(2, point.getOctave() + 1);
+            double scale = 1.6;
+            if(point.getSize() != null) scale = point.getSize() / Math.pow(2, point.getOctave() + 1);
 
-                sigma = 1.5 * scale;
-                sigma2 = gridSize * blockSize / 3D * scale;
-            }
-
-            // Calculate histograms for full patch with FULL_BINS_COUNT bins
-            double[] full = calculateHistograms(gradient, dx, dy, Gauss.getFullKernel(sigma),
-                                                1, (int)Math.round(sigma * 3) * 2 + 1, FULL_BINS_COUNT, point, 0)[0][0];
+            double[] full = calculateHistograms(g, dx, dy, scale * 1.5, 1, FULL_BINS_COUNT, point, 0, false)[0][0];
 
             // Peaks
             int peak = findMaximum(full, -1);
             int secondPeak = findMaximum(full, peak);
 
             ArrayList<Double> angles = new ArrayList<>();
-            angles.add(2 * Math.PI - peak * fullStep);
+            angles.add(interpolatePeak(full, peak, fullStep));
 
-            if(full[secondPeak] / full[peak] > NEXT_PEAK_THRESHOLD) angles.add(secondPeak * fullStep);
+            if(full[secondPeak] / full[peak] > NEXT_PEAK_THRESHOLD)
+                angles.add(interpolatePeak(full, secondPeak, fullStep));
 
-            // Rotate and findKeyPoints descriptor
-            Mat gauss2 = Gauss.getFullKernel(sigma2);
+            // Rotate and find key points descriptors
             for(Double angle : angles)
                 descriptors.add(Descriptor.of(point, toVector(
-                        calculateHistograms(gradient, dx, dy, gauss2, gridSize, blockSize, binsCount, point, angle),
+                        calculateHistograms(g, dx, dy, scale * 3, gridSize, binsCount, point, angle, triLinear),
                         gridSize, binsCount
                 )).setAngle(angle));
         }
@@ -75,6 +65,19 @@ public class RotationInvariant {
                 index = i;
 
         return index;
+    }
+
+    private static double interpolatePeak(double[] hist, int index, double fullStep) {
+        int left = index == 0 ? hist.length - 1 : index - 1;
+        int right = index == hist.length - 1 ? 0 : index + 1;
+
+        // ??? // Should be index + delta
+        double result = index - 0.5 * (hist[left] - hist[right]) / (hist[left] - 2 * hist[index] + hist[right]);
+
+        if(result < 0) result += hist.length;
+        if(result >= hist.length) result -= hist.length;
+
+        return 2 * Math.PI - result * fullStep;
     }
 
 }

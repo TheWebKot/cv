@@ -69,7 +69,10 @@ public class DrawUtils {
 
     public static void drawLine(BufferedImage image, int fromX, int fromY, int toX, int toY) {
         Graphics2D g = (Graphics2D)image.getGraphics();
-        g.setColor(new Color(1, 0, 0, 0.5f));
+
+        Color c = ColorUtils.randomColor();
+        g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 128));
+
         g.setStroke(new BasicStroke(2));
         g.drawLine(fromX, fromY, toX, toY);
     }

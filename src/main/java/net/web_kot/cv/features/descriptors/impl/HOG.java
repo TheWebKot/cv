@@ -5,7 +5,6 @@ import net.web_kot.cv.features.descriptors.Descriptor;
 import net.web_kot.cv.mat.EdgeWrapMode;
 import net.web_kot.cv.mat.Mat;
 import net.web_kot.cv.mat.Vector;
-import net.web_kot.cv.processors.convolution.impl.Gauss;
 import net.web_kot.cv.processors.convolution.impl.gradient.Gradient;
 import net.web_kot.cv.processors.convolution.impl.gradient.GradientMatrices;
 import net.web_kot.cv.scale.ScaledMat;
@@ -22,39 +21,48 @@ public class HOG {
     private static final int DEFAULT_BLOCK_SIZE = 4;
 
     public static List<Descriptor> calculate(Mat image, Iterable<PointOfInterest> points) {
-        return calculate(image, points, DEFAULT_GRID_SIZE, DEFAULT_BLOCK_SIZE, DEFAULT_BINS_COUNT);
+        return calculate(image, points, DEFAULT_GRID_SIZE, DEFAULT_BINS_COUNT);
     }
 
     public static List<Descriptor> calculate(Mat image, Iterable<PointOfInterest> points,
-                                             int gridSize, int blockSize, int binsCount) {
-        Mat gauss = Gauss.getFullKernel(DEFAULT_GRID_SIZE * DEFAULT_BLOCK_SIZE / 3D);
+                                             int gridSize, int binsCount) {
+        double sigma = DEFAULT_GRID_SIZE * DEFAULT_BLOCK_SIZE / 2D / 3D;
 
         Mat dx = image.withSameSize(), dy = image.withSameSize(), gradient = image.withSameSize();
         Gradient.apply(image, gradient, dx, dy, GradientMatrices.SOBEL);
 
         return map(points, point ->
                 toVector(
-                        calculateHistograms(gradient, dx, dy, gauss, gridSize, blockSize, binsCount, point, 0),
+                        calculateHistograms(gradient, dx, dy, sigma, gridSize, binsCount, point, 0, false),
                         gridSize, binsCount
                 )
         );
     }
 
-    protected static double[][][] calculateHistograms(Mat gradient, Mat dx, Mat dy, Mat gauss,
-                                                      int gridSize, int blockSize, int binsCount,
-                                                      PointOfInterest center, double angle) {
-        EdgeWrapMode mode = EdgeWrapMode.DEFAULT;
-        int gaussK = gauss.getWidth() / 2;
+    protected static double[][][] calculateHistograms(Mat gradient, Mat dx, Mat dy, double sigma,
+                                                      int gridSize, int binsCount,
+                                                      PointOfInterest center, double angle, boolean triLinear) {
+        double expScale = -1 / (2 * sigma * sigma);
+        int radius = (int)Math.round(3 * sigma);
 
+        return calculateHistograms(gradient, dx, dy, expScale, gridSize, radius, binsCount, center, angle, triLinear);
+    }
+
+    protected static double[][][] calculateHistograms(Mat gradient, Mat dx, Mat dy, double expScale,
+                                                      int gridSize, int radius, int binsCount,
+                                                      PointOfInterest center, double angle, boolean triLinear) {
         int centerX = ScaledMat.modify(center.getX(), -center.getOctave());
         int centerY = ScaledMat.modify(center.getY(), -center.getOctave());
 
         double[][][] bins = new double[gridSize][gridSize][binsCount];
         double step = 2 * Math.PI / binsCount;
 
-        int from = gridSize * blockSize / 2, to = gridSize * blockSize - from;
-        for(int u = -from; u < to; u++)
-            for(int v = -from; v < to; v++) {
+        double cos = Math.cos(-angle), sin = Math.sin(-angle);
+        double fullSize = radius * 2 + 1, blockSize = fullSize / gridSize;
+
+        EdgeWrapMode mode = EdgeWrapMode.DEFAULT;
+        for(int u = -radius; u <= radius; u++)
+            for(int v = -radius; v <= radius; v++) {
                 int x = centerX + u, y = centerY + v;
 
                 double theta = Math.atan2(dy.get(x, y, mode), dx.get(x, y, mode));
@@ -63,28 +71,30 @@ public class HOG {
                 double value = gradient.get(x, y, mode);
 
                 // Rotation
-                int rotatedU = (int)Math.round(u * Math.cos(-angle) + v * Math.sin(-angle));
-                int rotatedV = (int)Math.round(v * Math.cos(-angle) - u * Math.sin(-angle));
+                double rotatedU = u * cos + v * sin;
+                double rotatedV = v * cos - u * sin;
 
                 double rotatedTheta = theta + angle;
-                if(rotatedTheta >= Math.PI * 2) rotatedTheta -= Math.PI * 2;
+                if(rotatedTheta > Math.PI * 2) rotatedTheta -= Math.PI * 2;
 
-                // Grid cell location
-                int column = (rotatedU + from) / blockSize;
-                int row = (rotatedV + from) / blockSize;
+                double column = (rotatedU + fullSize / 2) / blockSize;
+                double row = (rotatedV + fullSize / 2) / blockSize;
 
                 if(column < 0 || column >= gridSize || row < 0 || row >= gridSize) continue;
 
                 // Distance-based multiplier
-                value = value * gauss.get(rotatedU + gaussK, rotatedV + gaussK, EdgeWrapMode.BLACK);
+                value *= Math.exp((rotatedU * rotatedU + rotatedV * rotatedV) * expScale);
 
                 // Bins distribution
                 int leftBin = Math.min((int)Math.floor(rotatedTheta / step), binsCount - 1);
                 int rightBin = (leftBin + 1) % binsCount;
 
+                // TODO: trilinear
+
                 double ratio = (rotatedTheta % step) / step;
-                bins[row][column][leftBin] += value * (1 - ratio);
-                bins[row][column][rightBin] += value * ratio;
+
+                bins[(int)row][(int)column][leftBin] += value * (1 - ratio);
+                bins[(int)row][(int)column][rightBin] += value * ratio;
             }
 
         return bins;

@@ -26,21 +26,22 @@ public class SIFT {
     private static final double EDGE_THRESHOLD = 10;
 
     private static final int BINS_COUNT = 8;
-
     private static final int GRID_SIZE = 4;
-    private static final int BLOCK_SIZE = 4;
+
+    private static final double VECTOR_THRESHOLD = 0.2;
 
     public static List<Descriptor> calculate(Mat image) {
-        return calculate(SIFT::findKeyPoints, image, 100);
+        return calculate(SIFT::findKeyPoints, image, 100, false);
     }
 
     public static List<Descriptor> calculate(Function<Pyramid, List<PointOfInterest>> keyPointsFunction,
-                                             Mat image, int maxPoints) {
+                                             Mat image, int maxPoints, boolean triLinear) {
         Pyramid pyramid = Pyramid.build(image, OCTAVE_LAYERS, 0.5, PYRAMID_SIGMA, true);
-        return calculate(image, pyramid, keyPointsFunction.apply(pyramid), maxPoints);
+        return calculate(image, pyramid, keyPointsFunction.apply(pyramid), maxPoints, triLinear);
     }
 
-    private static List<Descriptor> calculate(Mat image, Pyramid pyramid, List<PointOfInterest> points, int maxPoints) {
+    private static List<Descriptor> calculate(Mat image, Pyramid pyramid, List<PointOfInterest> points,
+                                              int maxPoints, boolean triLinear) {
         Normalization.apply(points);
         points = NonMaximumSuppression.filter(points, maxPoints, NonMaximumSuppression.maxRadius(image));
 
@@ -54,7 +55,15 @@ public class SIFT {
         List<Descriptor> descriptors = new ArrayList<>();
         for(Map.Entry<ScaledMat, List<PointOfInterest>> group : groups.entrySet())
             descriptors.addAll(RotationInvariant.calculate(group.getKey().withoutScaling(), group.getValue(),
-                                                           GRID_SIZE, BLOCK_SIZE, BINS_COUNT));
+                                                           GRID_SIZE, BINS_COUNT, triLinear));
+
+        for(Descriptor d : descriptors) {
+            double[] v = d.getVector().getBuffer();
+            for(int i = 0; i < v.length; i++)
+                if(v[i] > VECTOR_THRESHOLD) v[i] = VECTOR_THRESHOLD;
+
+            d.getVector().normalize();
+        }
 
         return descriptors;
     }
