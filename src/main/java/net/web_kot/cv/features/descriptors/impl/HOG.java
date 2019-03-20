@@ -89,15 +89,36 @@ public class HOG {
                 int leftBin = Math.min((int)Math.floor(rotatedTheta / step), binsCount - 1);
                 int rightBin = (leftBin + 1) % binsCount;
 
-                // TODO: trilinear
-
                 double ratio = (rotatedTheta % step) / step;
 
-                bins[(int)row][(int)column][leftBin] += value * (1 - ratio);
-                bins[(int)row][(int)column][rightBin] += value * ratio;
+                if(!triLinear) {
+                    distribute(bins, (int)row, (int)column, 1, leftBin, rightBin, ratio, value);
+                } else {
+                    int lowestR = (int)row;
+                    if(row - lowestR <= 0.5) lowestR--;
+
+                    int lowestC = (int)column;
+                    if(column - lowestC <= 0.5) lowestC--;
+
+                    double rc = 1 - Math.abs(row - (lowestR + 0.5));
+                    double cc = 1 - Math.abs(column - (lowestC + 0.5));
+
+                    distribute(bins, lowestR,     lowestC,     rc * cc,             leftBin, rightBin, ratio, value);
+                    distribute(bins, lowestR,     lowestC + 1, rc * (1 - cc),       leftBin, rightBin, ratio, value);
+                    distribute(bins, lowestR + 1, lowestC,     (1 - rc) * cc,       leftBin, rightBin, ratio, value);
+                    distribute(bins, lowestR + 1, lowestC + 1, (1 - rc) * (1 - cc), leftBin, rightBin, ratio, value);
+                }
             }
 
         return bins;
+    }
+
+    private static void distribute(double[][][] bins, int row, int column, double coefficient,
+                                  int leftBin, int rightBin, double ratio, double value) {
+        if(row < 0 || row >= bins.length || column < 0 || column >= bins[row].length) return;
+
+        bins[row][column][leftBin] += coefficient * value * (1 - ratio);
+        bins[row][column][rightBin] += coefficient * value * ratio;
     }
 
     protected static Vector toVector(double[][][] bins, int gridSize, int binsCount) {
