@@ -71,7 +71,8 @@ public class DrawUtils {
         Graphics2D g = (Graphics2D)image.getGraphics();
 
         Color c = ColorUtils.randomColor();
-        g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 128));
+        g.setColor(c);
+        //g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 128));
 
         g.setStroke(new BasicStroke(2));
         g.drawLine(fromX, fromY, toX, toY);

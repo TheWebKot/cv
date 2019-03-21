@@ -42,10 +42,9 @@ public class RotationInvariant {
             int secondPeak = findMaximum(full, peak);
 
             ArrayList<Double> angles = new ArrayList<>();
-            angles.add(interpolatePeak(full, peak, fullStep));
+            interpolatePeak(angles, full, peak, fullStep);
 
-            if(full[secondPeak] / full[peak] > NEXT_PEAK_THRESHOLD)
-                angles.add(interpolatePeak(full, secondPeak, fullStep));
+            if(full[secondPeak] / full[peak] > NEXT_PEAK_THRESHOLD) interpolatePeak(angles, full, secondPeak, fullStep);
 
             // Rotate and find key points descriptors
             for(Double angle : angles)
@@ -63,21 +62,22 @@ public class RotationInvariant {
         for(int i = 0; i < array.length; i++)
             if(i != exclude && (index == -1 || array[i] > array[index]))
                 index = i;
-
+        
         return index;
     }
 
-    private static double interpolatePeak(double[] hist, int index, double fullStep) {
+    private static void interpolatePeak(ArrayList<Double> list, double[] hist, int index, double fullStep) {
         int left = index == 0 ? hist.length - 1 : index - 1;
         int right = index == hist.length - 1 ? 0 : index + 1;
-
-        // ??? // Should be index + delta
-        double result = index - 0.5 * (hist[left] - hist[right]) / (hist[left] - 2 * hist[index] + hist[right]);
-
+        
+        if(hist[left] >= hist[index] || hist[index] <= hist[right]) return;
+        
+        double result = index + 0.5 * (hist[left] - hist[right]) / (hist[left] - 2 * hist[index] + hist[right]);
+        
         if(result < 0) result += hist.length;
         if(result >= hist.length) result -= hist.length;
-
-        return 2 * Math.PI - result * fullStep;
+        
+        list.add(2 * Math.PI - result * fullStep);
     }
 
 }

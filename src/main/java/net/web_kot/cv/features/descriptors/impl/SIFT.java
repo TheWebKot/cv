@@ -35,7 +35,7 @@ public class SIFT {
     }
 
     public static List<Descriptor> calculate(Mat image, boolean triLinear) {
-        return calculate(SIFT::findKeyPoints, image, 100, triLinear);
+        return calculate(SIFT::findKeyPoints, image, 180, triLinear);
     }
 
     public static List<Descriptor> calculate(Function<Pyramid, List<PointOfInterest>> keyPointsFunction,

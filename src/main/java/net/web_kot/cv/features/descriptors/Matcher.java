@@ -13,7 +13,7 @@ public class Matcher {
         List<Pair<Descriptor, Descriptor>> matching = new ArrayList<>();
         for(Descriptor descriptor : first) {
             Descriptor best = findBestFor(descriptor, second);
-            if(best != null && findBestFor(best, first) == descriptor) matching.add(Pair.of(descriptor, best));
+            if(best != null /*&& findBestFor(best, first) == descriptor*/) matching.add(Pair.of(descriptor, best));
         }
         return matching;
     }
