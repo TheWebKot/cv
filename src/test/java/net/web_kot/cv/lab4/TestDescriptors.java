@@ -5,7 +5,8 @@ import net.web_kot.cv.features.corners.Harris;
 import net.web_kot.cv.features.corners.NonMaximumSuppression;
 import net.web_kot.cv.features.corners.PointOfInterest;
 import net.web_kot.cv.features.descriptors.Descriptor;
-import net.web_kot.cv.features.descriptors.Matcher;
+import net.web_kot.cv.features.descriptors.matcher.AbstractMatcher;
+import net.web_kot.cv.features.descriptors.matcher.MatcherMutualChoice;
 import net.web_kot.cv.features.descriptors.impl.HOG;
 import net.web_kot.cv.features.descriptors.impl.Patches;
 import net.web_kot.cv.mat.Mat;
@@ -47,10 +48,15 @@ public class TestDescriptors {
         test(folder, image1, image2, image -> func.apply(image, getPoints(image)), name, false);
     }
 
-    public static void test(String folder, Mat image1, Mat image2,
-                            Function<Mat, List<Descriptor>> func, String name, boolean extended) {
+    public static void test(String folder, Mat image1, Mat image2, Function<Mat, List<Descriptor>> func,
+                            String name, boolean extended) {
+        test(folder, image1, image2, func, MatcherMutualChoice.INSTANCE, name, extended);
+    }
+
+    public static void test(String folder, Mat image1, Mat image2, Function<Mat, List<Descriptor>> func,
+                            AbstractMatcher matcher, String name, boolean extended) {
         List<Descriptor> desc1 = func.apply(image1), desc2 = func.apply(image2);
-        List<Pair<Descriptor, Descriptor>> matching = Matcher.match(desc1, desc2);
+        List<Pair<Descriptor, Descriptor>> matching = matcher.match(desc1, desc2);
 
         int width = image1.getWidth() + image2.getWidth() + X_DISTANCE;
         int height = Math.max(image1.getHeight(), image2.getHeight() + Y_OFFSET);
