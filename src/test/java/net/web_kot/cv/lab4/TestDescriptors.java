@@ -58,6 +58,18 @@ public class TestDescriptors {
         List<Descriptor> desc1 = func.apply(image1), desc2 = func.apply(image2);
         List<Pair<Descriptor, Descriptor>> matching = matcher.match(desc1, desc2);
 
+        BufferedImage result = drawMatches(image1, image2, desc1, desc2, matching, extended);
+        IOUtils.writeToJpegFile(result, new File("test/" + folder + "/" + name + ".jpeg"));
+    }
+
+    public static BufferedImage drawMatches(Mat image1, Mat image2, List<Descriptor> desc1,
+                                            List<Descriptor> desc2, List<Pair<Descriptor, Descriptor>> matching) {
+        return drawMatches(image1, image2, desc1, desc2, matching, true);
+    }
+
+    private static BufferedImage drawMatches(Mat image1, Mat image2, List<Descriptor> desc1,
+                                            List<Descriptor> desc2, List<Pair<Descriptor, Descriptor>> matching,
+                                            boolean extended) {
         int width = image1.getWidth() + image2.getWidth() + X_DISTANCE;
         int height = Math.max(image1.getHeight(), image2.getHeight() + Y_OFFSET);
 
@@ -72,7 +84,7 @@ public class TestDescriptors {
                                to.getX() + image1.getWidth() + X_DISTANCE, to.getY() + Y_OFFSET);
         }
 
-        IOUtils.writeToJpegFile(result, new File("test/" + folder + "/" + name + ".jpeg"));
+        return result;
     }
 
     private static List<PointOfInterest> getPoints(Mat image) {

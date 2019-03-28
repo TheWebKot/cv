@@ -25,4 +25,9 @@ public class PointOfInterest {
         return MathUtils.sqr(x - other.x) + MathUtils.sqr(y - other.y);
     }
 
+    @Override
+    public String toString() {
+        return "{ " + x + ", " + y + " }";
+    }
+
 }
