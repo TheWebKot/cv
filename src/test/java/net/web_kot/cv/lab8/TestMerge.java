@@ -45,7 +45,7 @@ public class TestMerge {
                     ImageTransformer.apply(
                             ImageIO.read(new File(test.getLeft())),
                             ImageIO.read(new File(test.getMiddle())),
-                            transformation.getHomography()
+                            transformation
                     ),
                     new File("test/merge/" + test.getRight() + "-merged.jpeg")
             );

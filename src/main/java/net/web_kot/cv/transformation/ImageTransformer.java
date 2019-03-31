@@ -1,47 +1,51 @@
 package net.web_kot.cv.transformation;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 public class ImageTransformer {
 
-    public static final double SCALE_FACTOR = 4;
-    public static final int BACKGROUND_RGB = Color.BLACK.getRGB();
+    public static BufferedImage apply(BufferedImage first, BufferedImage second, Transformation transformation) {
+        int minX = 0, maxX = first.getWidth();
+        int minY = 0, maxY = first.getHeight();
 
-    public static BufferedImage apply(BufferedImage first, BufferedImage second, double[][] matrix) {
-        int width = (int)Math.round(first.getWidth() * SCALE_FACTOR);
-        int height = (int)Math.round(first.getHeight() * SCALE_FACTOR);
+        List<Pair<Integer, Integer>> corners = ImmutableList.of(
+                Pair.of(0, 0), Pair.of(second.getWidth(), 0), Pair.of(0, second.getHeight()),
+                Pair.of(second.getWidth(), second.getHeight())
+        );
 
-        int dx = (width - first.getWidth()) / 2;
-        int dy = (height - first.getHeight()) / 2;
+        for(Pair<Integer, Integer> corner : corners) {
+            Pair<Double, Double> transformed = apply(transformation.getReverseMatrix(),
+                                                     corner.getLeft(), corner.getRight());
+
+            minX = Math.min(minX, (int)Math.floor(transformed.getLeft()));
+            maxX = Math.max(maxX, (int)Math.ceil(transformed.getLeft()));
+
+            minY = Math.min(minY, (int)Math.floor(transformed.getRight()));
+            maxY = Math.max(maxY, (int)Math.ceil(transformed.getRight()));
+        }
+
+        int width = maxX - minX, height = maxY - minY;
+        int dx = -minX, dy = -minY;
 
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         image.getGraphics().drawImage(first, dx, dy, null);
 
-        int minX = dx, maxX = minX + first.getWidth();
-        int minY = dy, maxY = minY + first.getHeight();
-
         for(int y = 0; y < image.getHeight(); y++) {
             for(int x = 0; x < image.getWidth(); x++) {
-                Pair<Double, Double> to = apply(matrix, x - dx, y - dy);
+                Pair<Double, Double> to = apply(transformation.getMatrix(), x - dx, y - dy);
                 int nX = (int)Math.round(to.getLeft());
                 int nY = (int)Math.round(to.getRight());
 
                 if(nX < 0 || nY < 0 || nX >= second.getWidth() || nY >= second.getHeight()) continue;
-
                 image.setRGB(x, y, getRGB(second, nX, nY));
-
-                minX = Math.min(minX, x);
-                maxX = Math.max(maxX, x);
-
-                minY = Math.min(minY, y);
-                maxY = Math.max(maxY, y);
             }
         }
 
-        return image.getSubimage(minX, minY, maxX - minX, maxY - minY);
+        return image;
     }
 
     public static int getRGB(BufferedImage image, double x, double y) {
@@ -59,7 +63,7 @@ public class ImageTransformer {
     }
 
     public static int getIntRGB(BufferedImage image, int x, int y) {
-        if(x < 0 || y < 0 || x >= image.getWidth() || y >= image.getHeight()) return BACKGROUND_RGB;
+        if(x < 0 || y < 0 || x >= image.getWidth() || y >= image.getHeight()) return 0;
         return image.getRGB(x, y);
     }
 

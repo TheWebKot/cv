@@ -15,6 +15,8 @@ public class RandomSampleConsensus {
     private static final int ITERATIONS = 100;
     private static final int MATCHES_TO_PEEK = 4;
 
+    private static final int INLIERS_DISTANCE = 5;
+
     public static Transformation apply(List<Pair<Descriptor, Descriptor>> matching) {
         return apply(matching, new Random(RandomSampleConsensus.class.getSimpleName().hashCode()));
     }
@@ -23,7 +25,7 @@ public class RandomSampleConsensus {
         BitSet best = null;
         for(int i = 0; i < ITERATIONS; i++) {
             Set<Integer> picked = pickMatches(matching, random);
-            double[][] h = findHomography(matching, picked);
+            double[][] h = findMatrix(matching, picked);
 
             BitSet inliers = new BitSet(matching.size());
             for(int j = 0; j < matching.size(); j++) {
@@ -32,10 +34,8 @@ public class RandomSampleConsensus {
 
                 Pair<Double, Double> nw = ImageTransformer.apply(h, a.getX(), a.getY());
 
-                double distance = Math.sqrt(MathUtils.sqr(nw.getLeft() - b.getX()) + MathUtils.sqr(nw.getRight() - b.getY()));
-                if(distance < 5) {
-                    inliers.set(j, true);
-                }
+                double distanceSq = MathUtils.sqr(nw.getLeft() - b.getX()) + MathUtils.sqr(nw.getRight() - b.getY());
+                if(distanceSq < INLIERS_DISTANCE * INLIERS_DISTANCE) inliers.set(j, true);
             }
 
             if(best == null || best.cardinality() < inliers.cardinality()) best = inliers;
@@ -48,7 +48,7 @@ public class RandomSampleConsensus {
         HashSet<Integer> picked = new HashSet<>();
         for(int i = 0; i < filtered.size(); i++) picked.add(i);
 
-        return new Transformation(filtered, findHomography(filtered, picked));
+        return new Transformation(filtered, findMatrix(filtered, picked), findMatrix(filtered, picked, true));
     }
 
     private static Set<Integer> pickMatches(List<Pair<Descriptor, Descriptor>> matching, Random random) {
@@ -56,23 +56,28 @@ public class RandomSampleConsensus {
             throw new IllegalArgumentException("Matches count must be greater or equal to " + MATCHES_TO_PEEK);
 
         HashSet<Integer> picked = new HashSet<>();
-        while(picked.size() < MATCHES_TO_PEEK) {
-            int value = random.nextInt(matching.size());
-            picked.add(value);
-        }
+        while(picked.size() < MATCHES_TO_PEEK) picked.add(random.nextInt(matching.size()));
 
         return picked;
     }
 
-    private static double[][] findHomography(List<Pair<Descriptor, Descriptor>> matching, Set<Integer> picked) {
-        double[][] matrix = new double[picked.size() * 2][];
+    private static double[][] findMatrix(List<Pair<Descriptor, Descriptor>> matching, Set<Integer> picked) {
+        return findMatrix(matching, picked, false);
+    }
 
-        // TODO: Coordinates normalization
+    private static double[][] findMatrix(List<Pair<Descriptor, Descriptor>> matching, Set<Integer> picked, boolean r) {
+        double[][] matrix = new double[picked.size() * 2][];
 
         int index = 0;
         for(int value : picked) {
             Pair<Descriptor, Descriptor> match = matching.get(value);
             PointOfInterest a = match.getLeft().getPoint(), b = match.getRight().getPoint();
+
+            if(r) {
+                PointOfInterest x = a;
+                a = b;
+                b = x;
+            }
 
             matrix[index * 2] = new double[] {
                     a.getX(), a.getY(), 1, 0, 0, 0, -b.getX() * a.getX(), -b.getX() * a.getY(), -b.getX()

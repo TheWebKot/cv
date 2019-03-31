@@ -12,6 +12,6 @@ import java.util.List;
 public class Transformation {
 
     private final List<Pair<Descriptor, Descriptor>> matches;
-    private final double[][] homography;
+    private final double[][] matrix, reverseMatrix;
 
 }
