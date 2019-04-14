@@ -68,14 +68,32 @@ public class DrawUtils {
     }
 
     public static void drawLine(BufferedImage image, int fromX, int fromY, int toX, int toY) {
+        drawLine(image, fromX, fromY, toX, toY, ColorUtils.randomColor(), 2);
+    }
+
+    public static void drawLine(BufferedImage image, int fromX, int fromY, int toX, int toY, Color color) {
+        drawLine(image, fromX, fromY, toX, toY, color, 1);
+    }
+
+    public static void drawLine(BufferedImage image, int fromX, int fromY, int toX, int toY, Color color, float s) {
         Graphics2D g = (Graphics2D)image.getGraphics();
+        g.setColor(color);
+        g.setStroke(new BasicStroke(s));
 
-        Color c = ColorUtils.randomColor();
-        g.setColor(c);
-        //g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 128));
-
-        g.setStroke(new BasicStroke(2));
         g.drawLine(fromX, fromY, toX, toY);
+    }
+
+    public static void drawPolygon(BufferedImage image, Polygon polygon, Color color, float stroke) {
+        drawPolygon(image, polygon, color, stroke, false);
+    }
+
+    public static void drawPolygon(BufferedImage image, Polygon polygon, Color color, float stroke, boolean corner) {
+        Graphics2D g = (Graphics2D)image.getGraphics();
+        g.setColor(color);
+        g.setStroke(new BasicStroke(stroke));
+
+        g.drawPolygon(polygon);
+        if(corner) g.drawOval(polygon.xpoints[0] - 8, polygon.ypoints[0] - 8, 16, 16);
     }
 
 }

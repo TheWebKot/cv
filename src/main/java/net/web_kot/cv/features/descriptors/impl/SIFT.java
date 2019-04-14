@@ -31,7 +31,15 @@ public class SIFT {
     private static final double VECTOR_THRESHOLD = 0.2;
 
     public static List<Descriptor> calculate(Mat image) {
-        return calculate(image, 350, true);
+        return calculate(image, 350);
+    }
+
+    public static List<Descriptor> calculate(Mat image, int points) {
+        return calculate(image, points, true);
+    }
+
+    public static List<Descriptor> calculate(Mat image, int points, int octaveLayers, double pyramidSigma) {
+        return calculate(SIFT::findKeyPoints, octaveLayers, pyramidSigma, image, points, true);
     }
 
     public static List<Descriptor> calculate(Mat image, boolean triLinear) {
@@ -39,12 +47,13 @@ public class SIFT {
     }
 
     public static List<Descriptor> calculate(Mat image, int maxPoints, boolean triLinear) {
-        return calculate(SIFT::findKeyPoints, image, maxPoints, triLinear);
+        return calculate(SIFT::findKeyPoints, OCTAVE_LAYERS, PYRAMID_SIGMA, image, maxPoints, triLinear);
     }
 
     public static List<Descriptor> calculate(Function<Pyramid, List<PointOfInterest>> keyPointsFunction,
+                                             int octaveLayers, double pyramidSigma,
                                              Mat image, int maxPoints, boolean triLinear) {
-        Pyramid pyramid = Pyramid.build(image, OCTAVE_LAYERS, 0.5, PYRAMID_SIGMA, true);
+        Pyramid pyramid = Pyramid.build(image, octaveLayers, 0.5, pyramidSigma, true);
         return calculate(image, pyramid, keyPointsFunction.apply(pyramid), maxPoints, triLinear);
     }
 
